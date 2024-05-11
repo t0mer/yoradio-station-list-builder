@@ -45,7 +45,7 @@ class Server:
         @self.app.get("/api/stations", summary="Get list of stations")
         def get_stations(request: Request):
             """
-            Get the list of stationsS
+            Get the list of stations
             """
             try:
                 response = self.connector.get_stations(True)
@@ -54,10 +54,10 @@ class Server:
                 logger.error("Error fetch images, " + str(e))
                 return None       
         
-        @self.app.get("/api/stations/{country_id}", summary="Get list of stations")
+        @self.app.get("/api/stations/{country_id}", summary="Get list of stations by country")
         def get_stations_by_id(request: Request,country_id:int):
             """
-            Get the list of stationsS
+            Get list of stations by country
             """
             try:
                 response = self.connector.get_stations_by_country_id(country_id,True)
@@ -65,11 +65,39 @@ class Server:
             except Exception as e:
                 logger.error("Error fetch images, " + str(e))
                 return None       
+
+
+        @self.app.get("/api/countries", summary="Get list of countries")
+        def get_countries(request: Request):
+            """
+            Get the list of countries
+            """
+            try:
+                response = self.connector.get_countries(True)
+                return JSONResponse(response)
+            except Exception as e:
+                logger.error("Error fetch images, " + str(e))
+                return None       
+        
+        @self.app.get("/api/countries/{country_id}", summary="Get list of stations")
+        def get_country_by_id(request: Request,country_id:int):
+            """
+            Get country by id
+            """
+            try:
+                response = self.connector.get_country_by_id(country_id,True)
+                return JSONResponse(response)
+            except Exception as e:
+                logger.error("Error fetch images, " + str(e))
+                return None     
+
+
+
         
         @self.app.get("/api/count/countries", summary="Get list of stations")
         def get_num_of_countries(request: Request):
             """
-            Get the list of stations
+            Get total countries count
             """
             try:
                 response = self.connector.get_countries_count()
@@ -82,7 +110,7 @@ class Server:
         @self.app.get("/api/count/stations", summary="Get list of stations")
         def get_num_of_stations(request: Request):
             """
-            Get the list of stationsS
+            Get total stations count
             """
             try:
                 response = self.connector.get_stations_count()
@@ -90,11 +118,6 @@ class Server:
             except Exception as e:
                 logger.error("Error fetch images, " + str(e))
                 return None       
-        
-
-          
-        
-        
         
         
     def start(self):

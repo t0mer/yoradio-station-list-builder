@@ -69,6 +69,51 @@ class SqliteConnector:
             return stations
         finally:
             self.close_connection()
+            
+    def get_countries(self, api_call=False):
+        stations = []
+        logger.debug("api_call = " + str(api_call))
+        try:
+            self.open_connection()
+            cursor = self.conn.cursor()
+            query = """select name, id from countries"""
+            cursor.execute(query)
+            if api_call == True:
+                rows = [dict((cursor.description[i][0], value) \
+                for i, value in enumerate(row)) for row in cursor.fetchall()]
+                cursor.close()
+                return (rows[0] if rows else None) if False else rows
+            else:
+                rows = cursor.fetchall()
+            return rows
+        except Error as e:
+            logger.error(str(e))
+            return stations
+        finally:
+            self.close_connection()
+            
+    def get_country_by_id(self, country_id, api_call=False):
+        stations = []
+        logger.debug("api_call = " + str(api_call))
+        try:
+            self.open_connection()
+            cursor = self.conn.cursor()
+            query = f"""select name, id from countries where id={country_id}"""
+            cursor.execute(query)
+            if api_call == True:
+                rows = [dict((cursor.description[i][0], value) \
+                for i, value in enumerate(row)) for row in cursor.fetchall()]
+                cursor.close()
+                return (rows[0] if rows else None) if False else rows
+            else:
+                rows = cursor.fetchall()
+            return rows
+        except Error as e:
+            logger.error(str(e))
+            return stations
+        finally:
+            self.close_connection()
+
 
     def get_stations_by_country_id(self, country_id, api_call=False):
         stations = []
