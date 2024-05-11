@@ -115,6 +115,34 @@ class SqliteConnector:
             self.close_connection()
 
 
+    def search_station(self, name, api_call=False):
+        stations = []
+        logger.debug(f"Name: {name}")
+        logger.debug("api_call = " + str(api_call))
+        try:
+            self.open_connection()
+            cursor = self.conn.cursor()
+            query = f'''
+        SELECT Stations.id, Stations.title, Stations.final_url, Stations.country_id, Countries.name as country
+        FROM Stations  
+        JOIN Countries ON Stations.country_id = Countries.id
+        WHERE Stations.title LIKE "%{name}%"
+        '''
+            cursor.execute(query)
+            if api_call == True:
+                rows = [dict((cursor.description[i][0], value) \
+                for i, value in enumerate(row)) for row in cursor.fetchall()]
+                cursor.close()
+                return (rows[0] if rows else None) if False else rows
+            else:
+                rows = cursor.fetchall()
+            return rows
+        except Error as e:
+            logger.error(str(e))
+            return stations
+        finally:
+            self.close_connection()
+
     def get_stations_by_country_id(self, country_id, api_call=False):
         stations = []
         logger.debug("api_call = " + str(api_call))

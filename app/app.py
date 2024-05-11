@@ -119,6 +119,20 @@ class Server:
                 logger.error("Error fetch images, " + str(e))
                 return None       
         
+
+        @self.app.get("/api/search/station", summary="Get list of stations")
+        def get_stations_by_id(request: Request,name:str):
+            """
+            Get list of stations by country
+            """
+            try:
+                response = self.connector.search_station(name,True)
+                return JSONResponse(response)
+            except Exception as e:
+                logger.error("Error fetch images, " + str(e))
+                return None       
+
+
         
     def start(self):
         uvicorn.run(self.app, host="0.0.0.0", port=8082)
