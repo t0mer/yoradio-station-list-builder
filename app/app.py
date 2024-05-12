@@ -42,6 +42,13 @@ class Server:
         )
         
         
+        @self.app.get("/")
+        def index(request: Request):
+            """
+            Homepage
+            """
+            return self.templates.TemplateResponse('index.html', context={'request': request })   
+        
         @self.app.get("/api/stations", summary="Get list of stations")
         def get_stations(request: Request):
             """
