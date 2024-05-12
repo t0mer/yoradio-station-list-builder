@@ -9,7 +9,7 @@ class SqliteConnector:
         
     def open_connection(self):
         try:
-            self.conn = sqlite3.connect(self.db_file)
+            self.conn = sqlite3.connect(self.db_file, check_same_thread=False)
         except Error as e:
             logger.error(str(e))
 
