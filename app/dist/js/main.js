@@ -19,17 +19,67 @@ $(document).ready(function () {
 
     $('#countries').change(function () {
         var country_id = $(this).val();
+        console.log(country_id);
         get_stations_by_country(country_id, stationsTable);
     });
 
     // Clear list button click event
     $('#clear-list').click(function () {
-        clearNewList();
+        Swal.fire({
+            title: 'Are you sure?',
+            text: "Do you really want to clear the list?",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Yes, clear it!',
+            cancelButtonText: 'No, keep it'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                try {
+                    clearNewList();
+                    Swal.fire({
+                        toast: true,
+                        position: 'top-end',
+                        icon: 'success',
+                        title: 'Your list has been cleared.',
+                        showConfirmButton: false,
+                        timer: 1500
+                    });
+                } catch (error) {
+                    Swal.fire({
+                        toast: true,
+                        position: 'top-end',
+                        icon: 'error',
+                        title: 'There was a problem clearing the list.',
+                        showConfirmButton: false,
+                        timer: 1500
+                    });
+                }
+            }
+        });
     });
 
     // Export list button click event
     $('#export-list').click(function () {
-        exportNewListToCSV();
+        try {
+            exportNewListToCSV();
+            Swal.fire({
+                toast: true,
+                position: 'top-end',
+                icon: 'success',
+                title: 'Your list has been exported to a csv file.',
+                showConfirmButton: false,
+                timer: 1500
+            });
+        } catch (error) {
+            Swal.fire({
+                toast: true,
+                position: 'top-end',
+                icon: 'error',
+                title: 'There was a problem exporting the list.',
+                showConfirmButton: false,
+                timer: 1500
+            });
+        }
     });
 });
 
@@ -55,6 +105,7 @@ function get_countries() {
 
             // Loop through the JSON data and append options to the select box
             $.each(data, function (index, value) {
+                console.log(value.name + " : " + value.id);
                 selectBox.append($('<option>', {
                     value: value.id,
                     text: value.name
@@ -108,24 +159,74 @@ function addToNewList(title, url) {
 
     // If the station doesn't exist, add it to the newList array
     if (!exists) {
-        newList.push({title: title, url: url, Ovol: 0});
+        try {
+            newList.push({title: title, url: url, Ovol: 0});
+            console.log("Added to new list:", title, url);
+            console.log("Updated newList:", newList);
+            // Print new list to the console
+            printNewList();
+
+            // Update the second table
+            updateNewListTable();
+            Swal.fire({
+                toast: true,
+                position: 'top-end',
+                icon: 'success',
+                title: 'Station added to the list!',
+                showConfirmButton: false,
+                timer: 1500
+            });
+        } catch (error) {
+            Swal.fire({
+                toast: true,
+                position: 'top-end',
+                icon: 'error',
+                title: 'There was a problem adding the station.',
+                showConfirmButton: false,
+                timer: 1500
+            });
+        }
+    } else {
+        console.log("Station already exists in the new list:", title, url);
+        Swal.fire({
+            toast: true,
+            position: 'top-end',
+            icon: 'error',
+            title: 'Station already exists in the list!',
+            showConfirmButton: false,
+            timer: 1500
+        });
+    }
+}
+
+function removeFromNewList(title, url) {
+    try {
+        newList = newList.filter(item => item.title !== title || item.url !== url);
+        console.log("Removed from new list:", title, url);
+        console.log("Updated newList:", newList);
         // Print new list to the console
         printNewList();
 
         // Update the second table
         updateNewListTable();
-    } else {
-        console.log("Station already exists in the new list:", title, url);
+        Swal.fire({
+            toast: true,
+            position: 'top-end',
+            icon: 'success',
+            title: 'Station removed from the list!',
+            showConfirmButton: false,
+            timer: 1500
+        });
+    } catch (error) {
+        Swal.fire({
+            toast: true,
+            position: 'top-end',
+            icon: 'error',
+            title: 'There was a problem removing the station.',
+            showConfirmButton: false,
+            timer: 1500
+        });
     }
-}
-
-function removeFromNewList(title, url) {
-    newList = newList.filter(item => item.title !== title || item.url !== url);
-    // Print new list to the console
-    printNewList();
-
-    // Update the second table
-    updateNewListTable();
 }
 
 function printNewList() {
@@ -154,6 +255,7 @@ function updateNewListTable() {
 
 function clearNewList() {
     newList = [];
+    console.log("Cleared new list");
     updateNewListTable();
 }
 
