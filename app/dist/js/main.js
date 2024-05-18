@@ -3,9 +3,17 @@ $(document).ready(function () {
     get_stations_count();
     get_countries();
 
-    // Initialize DataTable
+    // Initialize DataTable for the first table
     var stationsTable = $('#stations-by-countries').DataTable({
         "searching": true,
+        "showing": true,
+        "bLengthChange": true,
+        "paging": true
+    });
+
+    // Initialize DataTable for the second table
+    var newListTable = $('#new-list').DataTable({
+        "searching": false,
         "showing": false,
         "bLengthChange": false,
         "paging": true
@@ -94,16 +102,61 @@ function createRemoveHandler(title, url) {
 var newList = [];
 
 function addToNewList(title, url) {
-    newList.push({title: title, url: url, Ovol: 0});
-    console.log("Added to new list:", title, url);
-    console.log("Updated newList:", newList);
+    // Check if the station already exists in the newList array
+    var exists = newList.some(function (item) {
+        return item.title === title && item.url === url;
+    });
 
+    // If the station doesn't exist, add it to the newList array
+    if (!exists) {
+        newList.push({title: title, url: url, Ovol: 0});
+        console.log("Added to new list:", title, url);
+        console.log("Updated newList:", newList);
+        // Print new list to the console
+        printNewList();
+
+        // Update the second table
+        updateNewListTable();
+    } else {
+        console.log("Station already exists in the new list:", title, url);
+    }
 }
-
 function removeFromNewList(title, url) {
     newList = newList.filter(item => item.title !== title || item.url !== url);
     console.log("Removed from new list:", title, url);
     console.log("Updated newList:", newList);
+    // Print new list to the console
+    printNewList();
+
+    // Update the second table
+    updateNewListTable();
+}
+
+function printNewList() {
+    console.log("New List:");
+    newList.forEach(function (item) {
+        console.log("Title:", item.title, "URL:", item.url, "Ovol:", item.Ovol);
+    });
+}
+
+function updateNewListTable() {
+    // Clear existing data in the second table
+    var newListTable = $('#new-list').DataTable();
+    newListTable.clear().draw();
+
+    // Add new data to the second table based on the newList array
+    newList.forEach(function (item) {
+        var $tr = $('<tr>').append(
+            $('<td>').text(item.title),
+            $('<td>').text(item.url),
+            $('<td>').text(item.Ovol),
+            $('<td>').text('Controls') // You can add controls here if needed
+        );
+
+        newListTable.row.add($tr);
+    });
+
+    newListTable.draw();
 }
 
 function get_stations_by_country(country_id, dataTable) {
@@ -122,8 +175,8 @@ function get_stations_by_country(country_id, dataTable) {
                 var $urlLink = $('<a>').attr('href', item["final_url"]).text(truncatedUrl);
                 var $playButton = $('<button>').addClass('btn btn-play').html('<i class="fas fa-play" title="Play"></i>').click(createPlayHandler(item["final_url"]));
                 var $stopButton = $('<button>').addClass('btn btn-stop').html('<i class="fas fa-stop" title="Stop"></i>').click(stopPlayback);
-                var $addButton = $('<button>').addClass('btn btn-add').html('<i class="fas fa-plus" title="Add"></i>').click(createAddHandler(item["title"], item["final_url"]));
-                var $removeButton = $('<button>').addClass('btn btn-remove').html('<i class="fas fa-minus" title="Remove"></i>').click(createRemoveHandler(item["title"], item["final_url"]));
+                var $addButton = $('<button>').addClass('btn btn-add').html('<i class="fas fa-plus" title="Add to the list"></i>').click(createAddHandler(item["title"], item["final_url"]));
+                var $removeButton = $('<button>').addClass('btn btn-remove').html('<i class="fas fa-minus" title="Remove from the list"></i>').click(createRemoveHandler(item["title"], item["final_url"]));
 
                 var $tr = $('<tr>').append(
                     $('<td class="vmiddle">').text(item["country"]),
