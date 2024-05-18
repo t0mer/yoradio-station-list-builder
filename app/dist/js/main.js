@@ -3,26 +3,33 @@ $(document).ready(function () {
     get_stations_count();
     get_countries();
 
-    // Initialize DataTable for the first table
+    // Initialize DataTable
     var stationsTable = $('#stations-by-countries').DataTable({
         "searching": true,
-        "showing": true,
-        "bLengthChange": true,
-        "paging": true
-    });
-
-    // Initialize DataTable for the second table
-    var newListTable = $('#new-list').DataTable({
-        "searching": false,
         "showing": false,
         "bLengthChange": false,
         "paging": true
     });
 
+    var newListTable = $('#new-list').DataTable({
+        "searching": false,
+        "paging": false,
+        "bInfo": false
+    });
+
     $('#countries').change(function () {
         var country_id = $(this).val();
-        console.log(country_id);
         get_stations_by_country(country_id, stationsTable);
+    });
+
+    // Clear list button click event
+    $('#clear-list').click(function () {
+        clearNewList();
+    });
+
+    // Export list button click event
+    $('#export-list').click(function () {
+        exportNewListToCSV();
     });
 });
 
@@ -48,7 +55,6 @@ function get_countries() {
 
             // Loop through the JSON data and append options to the select box
             $.each(data, function (index, value) {
-                console.log(value.name + " : " + value.id);
                 selectBox.append($('<option>', {
                     value: value.id,
                     text: value.name
@@ -62,9 +68,6 @@ function get_countries() {
     });
 }
 
-
-
-
 var audioPlayer = new Audio();
 
 function createPlayHandler(url) {
@@ -72,7 +75,6 @@ function createPlayHandler(url) {
         playURL(url);
     };
 }
-
 
 function playURL(url) {
     audioPlayer.src = url;
@@ -83,8 +85,6 @@ function stopPlayback() {
     audioPlayer.pause();
     audioPlayer.currentTime = 0;
 }
-
-
 
 function createAddHandler(title, url) {
     return function() {
@@ -98,7 +98,6 @@ function createRemoveHandler(title, url) {
     };
 }
 
-
 var newList = [];
 
 function addToNewList(title, url) {
@@ -110,8 +109,6 @@ function addToNewList(title, url) {
     // If the station doesn't exist, add it to the newList array
     if (!exists) {
         newList.push({title: title, url: url, Ovol: 0});
-        console.log("Added to new list:", title, url);
-        console.log("Updated newList:", newList);
         // Print new list to the console
         printNewList();
 
@@ -121,10 +118,9 @@ function addToNewList(title, url) {
         console.log("Station already exists in the new list:", title, url);
     }
 }
+
 function removeFromNewList(title, url) {
     newList = newList.filter(item => item.title !== title || item.url !== url);
-    console.log("Removed from new list:", title, url);
-    console.log("Updated newList:", newList);
     // Print new list to the console
     printNewList();
 
@@ -133,30 +129,49 @@ function removeFromNewList(title, url) {
 }
 
 function printNewList() {
-    console.log("New List:");
-    newList.forEach(function (item) {
-        console.log("Title:", item.title, "URL:", item.url, "Ovol:", item.Ovol);
-    });
+    console.log("Current newList:", newList);
 }
 
 function updateNewListTable() {
-    // Clear existing data in the second table
     var newListTable = $('#new-list').DataTable();
-    newListTable.clear().draw();
+    newListTable.clear();
 
-    // Add new data to the second table based on the newList array
     newList.forEach(function (item) {
+        var $removeButton = $('<button>').addClass('btn btn-remove').html('<i class="fas fa-minus" title="Remove"></i>').click(createRemoveHandler(item.title, item.url));
+
         var $tr = $('<tr>').append(
             $('<td>').text(item.title),
             $('<td>').text(item.url),
             $('<td>').text(item.Ovol),
-            $('<td>').text('Controls') // You can add controls here if needed
+            $('<td>').append($removeButton)
         );
 
         newListTable.row.add($tr);
     });
 
     newListTable.draw();
+}
+
+function clearNewList() {
+    newList = [];
+    updateNewListTable();
+}
+
+function exportNewListToCSV() {
+    var csvContent = "data:text/csv;charset=utf-8,";
+
+    newList.forEach(function (item) {
+        var row = item.title + "\t" + item.url + "\t" + item.Ovol;
+        csvContent += row + "\n";
+    });
+
+    var encodedUri = encodeURI(csvContent);
+    var link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", "playlist.csv");
+    document.body.appendChild(link); // Required for FF
+
+    link.click(); // This will download the data file named "playlist.csv"
 }
 
 function get_stations_by_country(country_id, dataTable) {
@@ -175,8 +190,8 @@ function get_stations_by_country(country_id, dataTable) {
                 var $urlLink = $('<a>').attr('href', item["final_url"]).text(truncatedUrl);
                 var $playButton = $('<button>').addClass('btn btn-play').html('<i class="fas fa-play" title="Play"></i>').click(createPlayHandler(item["final_url"]));
                 var $stopButton = $('<button>').addClass('btn btn-stop').html('<i class="fas fa-stop" title="Stop"></i>').click(stopPlayback);
-                var $addButton = $('<button>').addClass('btn btn-add').html('<i class="fas fa-plus" title="Add to the list"></i>').click(createAddHandler(item["title"], item["final_url"]));
-                var $removeButton = $('<button>').addClass('btn btn-remove').html('<i class="fas fa-minus" title="Remove from the list"></i>').click(createRemoveHandler(item["title"], item["final_url"]));
+                var $addButton = $('<button>').addClass('btn btn-add').html('<i class="fas fa-plus" title="Add"></i>').click(createAddHandler(item["title"], item["final_url"]));
+                var $removeButton = $('<button>').addClass('btn btn-remove').html('<i class="fas fa-minus" title="Remove"></i>').click(createRemoveHandler(item["title"], item["final_url"]));
 
                 var $tr = $('<tr>').append(
                     $('<td class="vmiddle">').text(item["country"]),
