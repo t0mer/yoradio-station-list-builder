@@ -76,7 +76,7 @@ class SqliteConnector:
         try:
             self.open_connection()
             cursor = self.conn.cursor()
-            query = """select name, id from countries"""
+            query = """select name, id from countries order by name"""
             cursor.execute(query)
             if api_call == True:
                 rows = [dict((cursor.description[i][0], value) \
