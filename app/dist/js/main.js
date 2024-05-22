@@ -3,6 +3,26 @@ $(document).ready(function () {
     get_stations_count();
     get_countries();
 
+    $('#import-list').click(function () {
+        $('#import-file').click(); // Trigger click on hidden file input
+    });
+    
+    // File input change event
+    $('#import-file').change(function () {
+        var file = $(this)[0].files[0];
+        var reader = new FileReader();
+    
+        reader.onload = function (e) {
+            var csvData = e.target.result;
+            parseCSV(csvData);
+        };
+    
+        reader.readAsText(file);
+    });
+
+
+
+
     // Initialize DataTable
     var stationsTable = $('#stations-by-countries').DataTable({
         "searching": true,
@@ -94,6 +114,35 @@ function get_stations_count() {
         $('#stations-count').text(data.count);
     });
 }
+
+
+// Function to parse CSV data
+function parseCSV(csvData) {
+    var rows = csvData.split("\n");
+    var importedList = [];
+
+    rows.forEach(function (row) {
+        var columns = row.split("\t");
+        var title = columns[0].replace(/"/g, '');
+        var url = columns[1];
+        var Ovol = columns[2]; // Assuming third column is Ovol
+
+        importedList.push({ title: title, url: url, Ovol: Ovol });
+    });
+    importedList.pop();
+    addImportedItems(importedList);
+}
+
+// Function to add imported items to new list
+function addImportedItems(items) {
+    items.forEach(function (item) {
+        addToNewList(item.title, item.url);
+    });
+
+    // Update the second table
+    updateNewListTable();
+}
+
 
 function get_countries() {
     $.ajax({
@@ -238,6 +287,8 @@ function updateNewListTable() {
     newListTable.clear();
 
     newList.forEach(function (item) {
+        console.log(item.title);
+
         var $removeButton = $('<button>').addClass('btn btn-remove').html('<i class="fas fa-minus" title="Remove"></i>').click(createRemoveHandler(item.title, item.url));
 
         var $tr = $('<tr>').append(
