@@ -289,13 +289,15 @@ function updateNewListTable() {
     newList.forEach(function (item) {
         console.log(item.title);
 
-        var $removeButton = $('<button>').addClass('btn btn-remove').html('<i class="fas fa-minus" title="Remove"></i>').click(createRemoveHandler(item.title, item.url));
+        var $removeButton = $('<button>').addClass('btn btn-danger btn-icon').html('<i class="fas fa-times"></i>').attr('title', 'Remove').click(createRemoveHandler(item.title, item.url));
 
         var $tr = $('<tr>').append(
             $('<td>').text(item.title),
             $('<td>').text(item.url),
             $('<td>').text(item.Ovol),
-            $('<td>').append($removeButton)
+            $('<td>').append(
+                $('<div class="action-buttons">').append($removeButton)
+            )
         );
 
         newListTable.row.add($tr);
@@ -341,16 +343,18 @@ function get_stations_by_country(country_id, dataTable) {
                 var truncatedUrl = item["final_url"].length > maxLength ? item["final_url"].substring(0, maxLength) + '...' : item["final_url"];
 
                 var $urlLink = $('<a>').attr('href', item["final_url"]).text(truncatedUrl);
-                var $playButton = $('<button>').addClass('btn btn-play').html('<i class="fas fa-play" title="Play"></i>').click(createPlayHandler(item["final_url"]));
-                var $stopButton = $('<button>').addClass('btn btn-stop').html('<i class="fas fa-stop" title="Stop"></i>').click(stopPlayback);
-                var $addButton = $('<button>').addClass('btn btn-add').html('<i class="fas fa-plus" title="Add"></i>').click(createAddHandler(item["title"], item["final_url"]));
-                var $removeButton = $('<button>').addClass('btn btn-remove').html('<i class="fas fa-minus" title="Remove"></i>').click(createRemoveHandler(item["title"], item["final_url"]));
+                var $playButton = $('<button>').addClass('btn btn-success btn-icon').html('<i class="fas fa-play"></i>').attr('title', 'Play').click(createPlayHandler(item["final_url"]));
+                var $stopButton = $('<button>').addClass('btn btn-danger btn-icon').html('<i class="fas fa-stop"></i>').attr('title', 'Stop').click(stopPlayback);
+                var $addButton = $('<button>').addClass('btn btn-primary btn-icon').html('<i class="fas fa-plus"></i>').attr('title', 'Add to playlist').click(createAddHandler(item["title"], item["final_url"]));
+                var $removeButton = $('<button>').addClass('btn btn-warning btn-icon').html('<i class="fas fa-times"></i>').attr('title', 'Remove from playlist').click(createRemoveHandler(item["title"], item["final_url"]));
 
                 var $tr = $('<tr>').append(
                     $('<td class="vmiddle">').text(item["country"]),
                     $('<td class="vmiddle">').text(item["title"]),
                     $('<td class="vmiddle">').append($urlLink),
-                    $('<td class="srv vmiddle" id="' + item["id"] + '" >').append($playButton, ' ', $stopButton, ' ', $addButton, ' ', $removeButton)
+                    $('<td class="srv vmiddle" id="' + item["id"] + '" >').append(
+                        $('<div class="action-buttons">').append($playButton, $stopButton, $addButton, $removeButton)
+                    )
                 );
 
                 dataTable.row.add($tr); // Add the row to DataTable

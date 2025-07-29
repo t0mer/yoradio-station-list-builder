@@ -19,199 +19,642 @@
   <meta property="og:image:width" content="1408" />
   <meta property="og:image:height" content="881" />
 
+  <!-- Modern Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- Modern Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <!-- DataTables -->
+  <link rel="stylesheet" href="plugins/datatables/jquery.dataTables.min.css">
+  <link rel="stylesheet" href="plugins/datatables-responsive/css/responsive.dataTables.min.css">
+  <link rel="stylesheet" href="plugins/datatables-rowreorder/css/rowReorder.dataTables.min.css">
+  
+  <!-- SweetAlert2 -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+
   <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      --primary-color: #6366f1;
+      --primary-hover: #5b5ef0;
+      --secondary-color: #f8fafc;
+      --accent-color: #10b981;
+      --danger-color: #ef4444;
+      --warning-color: #f59e0b;
+      --text-primary: #1f2937;
+      --text-secondary: #6b7280;
+      --border-color: #e5e7eb;
+      --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+      --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+      --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+      --radius: 12px;
+      --radius-sm: 8px;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      color: var(--text-primary);
+      line-height: 1.6;
+    }
+
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 2rem 1rem;
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 3rem;
+      color: white;
+    }
+
+    .header h1 {
+      font-size: 3rem;
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+      text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .header p {
+      font-size: 1.25rem;
+      opacity: 0.9;
+      font-weight: 300;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1.5rem;
+      margin-bottom: 2rem;
+    }
+
+    .stat-card {
+      background: white;
+      border-radius: var(--radius);
+      padding: 2rem;
+      box-shadow: var(--shadow-lg);
+      text-align: center;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .stat-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+    }
+
+    .stat-number {
+      font-size: 2.5rem;
+      font-weight: 700;
+      color: var(--primary-color);
+      margin-bottom: 0.5rem;
+    }
+
+    .stat-label {
+      font-size: 1rem;
+      color: var(--text-secondary);
+      font-weight: 500;
+    }
+
+    .card {
+      background: white;
+      border-radius: var(--radius);
+      box-shadow: var(--shadow-lg);
+      margin-bottom: 2rem;
+      overflow: hidden;
+    }
+
+    .card-header {
+      background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+      padding: 1.5rem 2rem;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .card-title {
+      font-size: 1.5rem;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin: 0;
+    }
+
+    .card-body {
+      padding: 2rem;
+    }
+
+    .search-section {
+      margin-bottom: 2rem;
+    }
+
+    .form-group {
+      margin-bottom: 1.5rem;
+    }
+
+    .form-label {
+      display: block;
+      font-weight: 500;
+      color: var(--text-primary);
+      margin-bottom: 0.5rem;
+    }
+
+    .form-control {
+      width: 100%;
+      padding: 0.875rem 1rem;
+      border: 2px solid var(--border-color);
+      border-radius: var(--radius-sm);
+      font-size: 1rem;
+      transition: all 0.2s ease;
+      background: white;
+    }
+
+    .form-control:focus {
+      outline: none;
+      border-color: var(--primary-color);
+      box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.75rem 1.5rem;
+      border: none;
+      border-radius: var(--radius-sm);
+      font-weight: 500;
+      font-size: 0.875rem;
+      text-decoration: none;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      white-space: nowrap;
+    }
+
+    .btn-primary {
+      background: var(--primary-color);
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background: var(--primary-hover);
+      transform: translateY(-1px);
+      box-shadow: var(--shadow-md);
+    }
+
+    .btn-success {
+      background: var(--accent-color);
+      color: white;
+    }
+
+    .btn-success:hover {
+      background: #059669;
+      transform: translateY(-1px);
+      box-shadow: var(--shadow-md);
+    }
+
+    .btn-danger {
+      background: var(--danger-color);
+      color: white;
+    }
+
+    .btn-danger:hover {
+      background: #dc2626;
+      transform: translateY(-1px);
+      box-shadow: var(--shadow-md);
+    }
+
+    .btn-warning {
+      background: var(--warning-color);
+      color: white;
+    }
+
+    .btn-warning:hover {
+      background: #d97706;
+      transform: translateY(-1px);
+      box-shadow: var(--shadow-md);
+    }
+
+    .btn-sm {
+      padding: 0.5rem 1rem;
+      font-size: 0.8125rem;
+    }
+    
+    .btn-xs {
+      padding: 0.25rem 0.5rem;
+      font-size: 0.75rem;
+      min-width: auto;
+    }
+    
+    .btn-icon {
+      padding: 0.1875rem 0.25rem;
+      font-size: 0;
+      min-width: 1.125rem;
+      height: 1.125rem;
+      justify-content: center;
+      gap: 0;
+      border-radius: 4px;
+    }
+    
+    .btn-icon i {
+      margin: 0;
+      font-size: 0.5rem;
+    }
+
+    .btn-group {
+      display: flex;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+      margin-bottom: 1rem;
+    }
+    
+    .action-buttons {
+      display: flex;
+      gap: 0.0625rem;
+      flex-wrap: nowrap;
+      align-items: center;
+    }
+
+    .table-container {
+      background: white;
+      border-radius: var(--radius);
+      overflow: hidden;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    .table th,
+    .table td {
+      padding: 0.75rem 0.5rem;
+      text-align: left;
+      border-bottom: 1px solid var(--border-color);
+      vertical-align: middle;
+    }
+
+    .table th {
+      background: var(--secondary-color);
+      font-weight: 600;
+      color: var(--text-primary);
+      font-size: 0.875rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .table tbody tr:hover {
+      background: #f9fafb;
+    }
+
     .flag {
-      width: 25px;
+      width: 28px;
+      height: 20px;
       display: inline-block;
       overflow: hidden;
       position: relative;
       vertical-align: middle;
       box-sizing: content-box;
-      box-shadow: 0 0 0 1px #f0f0f0;
+      border-radius: 4px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      margin-right: 0.75rem;
     }
-    .vmiddle{
+
+    .vmiddle {
       vertical-align: middle;
     }
+
+    .playlist-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+
+    .responsive-table {
+      overflow-x: auto;
+    }
+
+    .loading-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(255, 255, 255, 0.95);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+      backdrop-filter: blur(4px);
+    }
+
+    .spinner {
+      width: 40px;
+      height: 40px;
+      border: 4px solid var(--border-color);
+      border-top: 4px solid var(--primary-color);
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    .fade-in {
+      animation: fadeIn 0.5s ease-in;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    /* Dark theme support */
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --text-primary: #f9fafb;
+        --text-secondary: #d1d5db;
+        --secondary-color: #374151;
+        --border-color: #4b5563;
+      }
+    }
+
+    /* Mobile responsiveness */
+    @media (max-width: 768px) {
+      .container {
+        padding: 1rem;
+      }
+      
+      .header h1 {
+        font-size: 2rem;
+      }
+      
+      .header p {
+        font-size: 1rem;
+      }
+      
+      .stats-grid {
+        grid-template-columns: 1fr;
+      }
+      
+      .card-body {
+        padding: 1rem;
+      }
+      
+      .btn-group {
+        flex-direction: column;
+      }
+      
+      .playlist-header {
+        flex-direction: column;
+        align-items: stretch;
+      }
+      
+      .action-buttons {
+        gap: 0.125rem;
+      }
+      
+      .btn-icon {
+        padding: 0.125rem 0.1875rem;
+        font-size: 0;
+        min-width: 1rem;
+        height: 1rem;
+      }
+      
+      .btn-icon i {
+        font-size: 0.4375rem;
+      }
+    }
+
+    /* DataTables custom styling */
+    .dataTables_wrapper {
+      padding: 0;
+    }
+
+    .dataTables_length,
+    .dataTables_filter,
+    .dataTables_info,
+    .dataTables_paginate {
+      margin: 1rem 0;
+    }
+
+    .dataTables_filter input {
+      border: 2px solid var(--border-color);
+      border-radius: var(--radius-sm);
+      padding: 0.5rem;
+      margin-left: 0.5rem;
+    }
+
+    .paginate_button {
+      padding: 0.5rem 0.75rem !important;
+      margin: 0 0.25rem !important;
+      border-radius: var(--radius-sm) !important;
+      border: none !important;
+      background: var(--secondary-color) !important;
+      color: var(--text-primary) !important;
+    }
+
+    .paginate_button.current {
+      background: var(--primary-color) !important;
+      color: white !important;
+    }
   </style>
-  <!-- Google Font: Source Sans Pro -->
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700&display=fallback">
-  <!-- Font Awesome -->
-  <link rel="stylesheet" href="plugins/fontawesome-free/css/all.min.css">
-  <!-- Ionicons -->
-  <link rel="stylesheet" href="https://code.ionicframework.com/ionicons/2.0.1/css/ionicons.min.css">
-  <!-- Theme style -->
-  <link rel="stylesheet" href="dist/css/adminlte.min.css">
-  <!-- DataTables -->
-  <link rel="stylesheet" href="plugins/datatables-bs4/css/dataTables.bootstrap4.min.css">
-  <link rel="stylesheet" href="plugins/datatables-responsive/css/responsive.bootstrap4.min.css">
-  <link rel="stylesheet" href="plugins/datatables-rowreorder/css/rowReorder.dataTables.min.css">
-  <!-- SweetAlert2 -->
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
-  <!-- FontAwesome -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" integrity="sha384-LK5/59D6F4b6jlW9JvGOJ3+DjqHRtL6Q0jp0+0p8HC+I+Zvx2K9LjM5fJw1M2d6C" crossorigin="anonymous">
 </head>
-<body class="hold-transition sidebar-mini layout-fixed">
-<div class="wrapper">
-  <div class="preloader flex-column justify-content-center align-items-center">
-    <img class="animation__shake" src="dist/img/AdminLTELogo.png" alt="AdminLTELogo" height="60" width="60">
+<body>
+  <!-- Loading Overlay -->
+  <div id="loading-overlay" class="loading-overlay hidden">
+    <div class="spinner"></div>
   </div>
 
-  <div class="content-wrapper">
-    <div class="content-header">
-      <div class="container-fluid">
-        <div class="row mb-2">
-          <div class="col-sm-12">
-            <h1 class="m-2" style="text-align:center">YoRadio stations list creator</h1>
+  <div class="container">
+    <!-- Header Section -->
+    <div class="header fade-in">
+      <h1><i class="fas fa-radio"></i> YoRadio</h1>
+      <p>Create your perfect radio station playlist from thousands of stations worldwide</p>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="stats-grid fade-in">
+      <div class="stat-card">
+        <div class="stat-number" id="countries-count">0</div>
+        <div class="stat-label"><i class="fas fa-globe"></i> Countries</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number" id="stations-count">0</div>
+        <div class="stat-label"><i class="fas fa-broadcast-tower"></i> Radio Stations</div>
+      </div>
+    </div>
+
+    <!-- Search and Browse Section -->
+    <div class="card fade-in">
+      <div class="card-header">
+        <h2 class="card-title"><i class="fas fa-search"></i> Browse Stations</h2>
+      </div>
+      <div class="card-body">
+        <div class="search-section">
+          <div class="form-group">
+            <label class="form-label" for="countries">
+              <i class="fas fa-flag"></i> Select Country
+            </label>
+            <select class="form-control" id="countries">
+              <option value="0">🌍 All Countries - Browse All Stations</option>
+            </select>
           </div>
-          <div class="col-sm-6">
+        </div>
+        
+        <div class="responsive-table">
+          <div class="table-container">
+            <table id="stations-by-countries" class="table">
+              <thead>
+                <tr>
+                  <th><i class="fas fa-flag"></i> Country</th>
+                  <th><i class="fas fa-microphone"></i> Station Name</th>
+                  <th><i class="fas fa-link"></i> Stream URL</th>
+                  <th><i class="fas fa-plus"></i> Add</th>
+                </tr>
+              </thead>
+              <tbody>
+              </tbody>
+            </table>
           </div>
         </div>
       </div>
     </div>
-    <section class="content">
-      <div class="container-fluid">
-        <div class="row">
-          <div class="col-lg-6 col-9">
-            <div class="small-box bg-info">
-              <div class="inner">
-                <h3><span id="countries-count">0</span></h3>
-                <p>Countries</p>
-              </div>
-              <div class="icon">
-              </div>
-            </div>
-          </div>
-          <div class="col-lg-6 col-9">
-            <div class="small-box bg-success">
-              <div class="inner">
-                <h3 id="stations-count">0<sup style="font-size: 20px"></sup></h3>
-                <p>Stations</p>
-              </div>
-              <div class="icon">
-              </div>
-            </div>
+
+    <!-- Playlist Section -->
+    <div class="card fade-in">
+      <div class="card-header">
+        <div class="playlist-header">
+          <h2 class="card-title"><i class="fas fa-list"></i> My Playlist</h2>
+          <div class="btn-group">
+            <button id="clear-list" class="btn btn-danger btn-sm">
+              <i class="fas fa-trash"></i> Clear All
+            </button>
+            <button id="export-list" class="btn btn-primary btn-sm">
+              <i class="fas fa-download"></i> Export
+            </button>
+            <button id="import-list" class="btn btn-success btn-sm">
+              <i class="fas fa-upload"></i> Import
+            </button>
+            <input type="file" id="import-file" style="display: none;" accept=".json,.txt">
           </div>
         </div>
-
-        <section class="content">
-          <div class="container-fluid">
-            <div class="card">
-              <div class="card-header">
-                <section class="content">
-                  <div class="container-fluid">
-                    <form>
-                      <div class="row">
-                        <div class="col-md-12 offset-md-1">
-                          <div class="row">
-                            <div class="col-10">
-                              <div class="form-group">
-                                <select class="form-control form-control-lg" style="width: 100%;" id="countries">
-                                  <option value="0">- Select Country -</option>
-                                </select>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </form>
-                  </div>
-                </section>
-              </div>
-              <div class="card-body">
-                <table id="stations-by-countries" class="table table-bordered table-striped">
-                  <thead>
-                    <tr>
-                      <th>Country</th>
-                      <th>Title</th>
-                      <th>URL</th>
-                      <th>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                  </tbody>
-                  <tfoot>
-                    <tr>
-                      <th>Country</th>
-                      <th>Title</th>
-                      <th>URL</th>
-                      <th>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</th>
-                    </tr>
-                  </tfoot>
-                </table>
-              </div>
-            </div>
-            
-            <div class="card">
-              <div class="card-header">
-                <h3 class="card-title">My Playlist</h3>
-                <div class="float-right">
-                  <button id="clear-list" class="btn btn-danger btn-sm">Clear List</button>
-                  <button id="export-list" class="btn btn-primary btn-sm">Export List</button>
-                  <button id="import-list" class="btn btn-primary btn-sm">Import List</button>
-                  <input type="file" id="import-file" style="display: none;">
-                </div>
-              </div>
-              <div class="card-body">
-                <table id="new-list" class="table table-bordered table-striped">
-                  <thead>
-                    <tr>
-                      <th>Title</th>
-                      <th>URL</th>
-                      <th>Ovol</th>
-                      <th>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                  </tbody>
-                  <tfoot>
-                    <tr>
-                      <th>Title</th>
-                      <th>URL</th>
-                      <th>Ovol</th>
-                      <th>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</th>
-                    </tr>
-                  </tfoot>
-                </table>
-              </div>
-            </div>
-          </div>
-        </section>
       </div>
-    </section>
-  </div>
-  <footer class="main-footer">
-    <strong>Copyright &copy; 2014-2021 <a href="https://adminlte.io">AdminLTE.io</a>.</strong>
-    All rights reserved.
-    <div class="float-right d-none d-sm-inline-block">
-      <b>Version</b> 3.2.0
+      <div class="card-body">
+        <div class="responsive-table">
+          <div class="table-container">
+            <table id="new-list" class="table">
+              <thead>
+                <tr>
+                  <th><i class="fas fa-microphone"></i> Station Name</th>
+                  <th><i class="fas fa-link"></i> Stream URL</th>
+                  <th><i class="fas fa-volume-up"></i> Volume</th>
+                  <th><i class="fas fa-cog"></i> Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
     </div>
-  </footer>
+  </div>
 
-  <aside class="control-sidebar control-sidebar-dark">
-  </aside>
-</div>
-
-<!-- jQuery -->
-<script src="plugins/jquery/jquery.min.js"></script>
-<!-- jQuery UI 1.11.4 -->
-<script src="plugins/jquery-ui/jquery-ui.min.js"></script>
-<!-- Resolve conflict in jQuery UI tooltip with Bootstrap tooltip -->
-<script>
-  $.widget.bridge('uibutton', $.ui.button)
-</script>
-<!-- Bootstrap 4 -->
-<script src="plugins/bootstrap/js/bootstrap.bundle.min.js"></script>
-<!-- DataTables & Plugins -->
-<script src="plugins/datatables/jquery.dataTables.min.js"></script>
-<script src="plugins/datatables-bs4/js/dataTables.bootstrap4.min.js"></script>
-<script src="plugins/datatables-responsive/js/dataTables.responsive.min.js"></script>
-<script src="plugins/datatables-responsive/js/responsive.bootstrap4.min.js"></script>
-<script src="plugins/datatables-rowreorder/js/dataTables.rowReorder.min.js"></script>
-<!-- AdminLTE App -->
-<script src="dist/js/adminlte.js"></script>
-<!-- SweetAlert2 -->
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.js"></script>
-<!-- Main JS -->
-<script src="dist/js/main.js"></script>
+  <!-- jQuery -->
+  <script src="plugins/jquery/jquery.min.js"></script>
+  <!-- DataTables & Plugins -->
+  <script src="plugins/datatables/jquery.dataTables.min.js"></script>
+  <script src="plugins/datatables-responsive/js/dataTables.responsive.min.js"></script>
+  <script src="plugins/datatables-rowreorder/js/dataTables.rowReorder.min.js"></script>
+  <!-- SweetAlert2 -->
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.js"></script>
+  <!-- Main JS -->
+  <script src="dist/js/main.js"></script>
+  
+  <script>
+    // Add modern loading states and animations
+    function showLoading() {
+      document.getElementById('loading-overlay').classList.remove('hidden');
+    }
+    
+    function hideLoading() {
+      document.getElementById('loading-overlay').classList.add('hidden');
+    }
+    
+    // Enhanced animations on load
+    document.addEventListener('DOMContentLoaded', function() {
+      // Add staggered animation to cards
+      const cards = document.querySelectorAll('.fade-in');
+      cards.forEach((card, index) => {
+        card.style.animationDelay = `${index * 0.1}s`;
+      });
+      
+      // Modern file input styling
+      const importButton = document.getElementById('import-list');
+      const fileInput = document.getElementById('import-file');
+      
+      importButton.addEventListener('click', function() {
+        fileInput.click();
+      });
+      
+      // Enhanced visual feedback for interactions
+      document.querySelectorAll('.btn').forEach(button => {
+        button.addEventListener('click', function(e) {
+          const ripple = document.createElement('span');
+          const rect = button.getBoundingClientRect();
+          const size = Math.max(rect.width, rect.height);
+          const x = e.clientX - rect.left - size / 2;
+          const y = e.clientY - rect.top - size / 2;
+          
+          ripple.style.cssText = `
+            position: absolute;
+            width: ${size}px;
+            height: ${size}px;
+            left: ${x}px;
+            top: ${y}px;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            transform: scale(0);
+            animation: ripple 0.6s linear;
+            pointer-events: none;
+          `;
+          
+          button.style.position = 'relative';
+          button.style.overflow = 'hidden';
+          button.appendChild(ripple);
+          
+          setTimeout(() => ripple.remove(), 600);
+        });
+      });
+    });
+    
+    // Add ripple animation CSS
+    const style = document.createElement('style');
+    style.textContent = `
+      @keyframes ripple {
+        to {
+          transform: scale(4);
+          opacity: 0;
+        }
+      }
+    `;
+    document.head.appendChild(style);
+  </script>
 </body>
 </html>
