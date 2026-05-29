@@ -1,49 +1,115 @@
+var newList = [];
+var audioPlayer = new Audio();
+var selectedCountryId = 0;
+
+// --- localStorage persistence ---
+
+function savePlaylist() {
+    localStorage.setItem('yoradio_playlist', JSON.stringify(newList));
+}
+
+function loadPlaylist() {
+    try {
+        return JSON.parse(localStorage.getItem('yoradio_playlist')) || [];
+    } catch (e) {
+        return [];
+    }
+}
+
+// --- DataTable setup ---
+
 $(document).ready(function () {
     get_countries_count();
     get_stations_count();
     get_countries();
 
+    // Restore playlist from localStorage
+    newList = loadPlaylist();
+    updateNewListTable();
+
+    // File import
     $('#import-list').click(function () {
-        $('#import-file').click(); // Trigger click on hidden file input
+        $('#import-file').click();
     });
-    
-    // File input change event
     $('#import-file').change(function () {
         var file = $(this)[0].files[0];
         var reader = new FileReader();
-    
         reader.onload = function (e) {
-            var csvData = e.target.result;
-            parseCSV(csvData);
+            parseCSV(e.target.result);
         };
-    
         reader.readAsText(file);
     });
 
-
-
-
-    // Initialize DataTable
+    // Server-side DataTable for station browsing
     var stationsTable = $('#stations-by-countries').DataTable({
-        "searching": true,
-        "showing": false,
-        "bLengthChange": false,
-        "paging": true
+        serverSide: true,
+        processing: true,
+        searching: true,
+        bLengthChange: false,
+        ajax: {
+            url: '/api/stations/datatable',
+            type: 'GET',
+            data: function (d) {
+                return {
+                    draw: d.draw,
+                    start: d.start,
+                    length: d.length,
+                    search: d.search.value,
+                    country_id: selectedCountryId
+                };
+            }
+        },
+        columns: [
+            { data: 'country' },
+            { data: 'title' },
+            { data: 'final_url' },
+            { data: null }
+        ],
+        columnDefs: [
+            {
+                targets: 2,
+                render: function (data) {
+                    var truncated = data.length > 20 ? data.substring(0, 20) + '...' : data;
+                    return '<a href="' + data + '">' + truncated + '</a>';
+                }
+            },
+            {
+                targets: 3,
+                orderable: false,
+                render: function (data, type, row) {
+                    var safeUrl = escapeHtml(row.final_url);
+                    return '<div class="action-buttons">'
+                        + '<button class="btn btn-success btn-icon play-btn" data-url="' + safeUrl + '" title="Play"><i class="fas fa-play"></i></button>'
+                        + '<button class="btn btn-danger btn-icon stop-btn" title="Stop"><i class="fas fa-stop"></i></button>'
+                        + '<button class="btn btn-primary btn-icon add-btn" data-title="' + escapeHtml(row.title) + '" data-url="' + safeUrl + '" title="Add to playlist"><i class="fas fa-plus"></i></button>'
+                        + '<button class="btn btn-warning btn-icon remove-btn" data-title="' + escapeHtml(row.title) + '" data-url="' + safeUrl + '" title="Remove from playlist"><i class="fas fa-times"></i></button>'
+                        + '</div>';
+                }
+            }
+        ]
     });
 
-    var newListTable = $('#new-list').DataTable({
-        "searching": false,
-        "paging": false,
-        "bInfo": false
+    // Delegated event handlers for dynamically rendered rows
+    $('#stations-by-countries tbody').on('click', '.play-btn', function () {
+        playURL($(this).data('url'));
+    });
+    $('#stations-by-countries tbody').on('click', '.stop-btn', function () {
+        stopPlayback();
+    });
+    $('#stations-by-countries tbody').on('click', '.add-btn', function () {
+        addToNewList($(this).data('title'), $(this).data('url'));
+    });
+    $('#stations-by-countries tbody').on('click', '.remove-btn', function () {
+        removeFromNewList($(this).data('title'), $(this).data('url'));
     });
 
+    // Country filter — reload DataTable with new country_id
     $('#countries').change(function () {
-        var country_id = $(this).val();
-        console.log(country_id);
-        get_stations_by_country(country_id, stationsTable);
+        selectedCountryId = $(this).val();
+        stationsTable.ajax.reload();
     });
 
-    // Clear list button click event
+    // Clear list
     $('#clear-list').click(function () {
         Swal.fire({
             title: 'Are you sure?',
@@ -52,129 +118,36 @@ $(document).ready(function () {
             showCancelButton: true,
             confirmButtonText: 'Yes, clear it!',
             cancelButtonText: 'No, keep it'
-        }).then((result) => {
+        }).then(function (result) {
             if (result.isConfirmed) {
-                try {
-                    clearNewList();
-                    Swal.fire({
-                        toast: true,
-                        position: 'top-end',
-                        icon: 'success',
-                        title: 'Your list has been cleared.',
-                        showConfirmButton: false,
-                        timer: 1500
-                    });
-                } catch (error) {
-                    Swal.fire({
-                        toast: true,
-                        position: 'top-end',
-                        icon: 'error',
-                        title: 'There was a problem clearing the list.',
-                        showConfirmButton: false,
-                        timer: 1500
-                    });
-                }
+                clearNewList();
+                Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: 'Your list has been cleared.', showConfirmButton: false, timer: 1500 });
             }
         });
     });
 
-    // Export list button click event
+    // Export list
     $('#export-list').click(function () {
         try {
             exportNewListToCSV();
-            Swal.fire({
-                toast: true,
-                position: 'top-end',
-                icon: 'success',
-                title: 'Your list has been exported to a csv file.',
-                showConfirmButton: false,
-                timer: 1500
-            });
+            Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: 'Your list has been exported to a csv file.', showConfirmButton: false, timer: 1500 });
         } catch (error) {
-            Swal.fire({
-                toast: true,
-                position: 'top-end',
-                icon: 'error',
-                title: 'There was a problem exporting the list.',
-                showConfirmButton: false,
-                timer: 1500
-            });
+            Swal.fire({ toast: true, position: 'top-end', icon: 'error', title: 'There was a problem exporting the list.', showConfirmButton: false, timer: 1500 });
         }
     });
 });
 
-function get_countries_count() {
-    $.get("api/count/countries", function (data) {
-        $('#countries-count').text(data.count);
-    });
+// --- Utility ---
+
+function escapeHtml(str) {
+    return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
 }
 
-function get_stations_count() {
-    $.get("api/count/stations", function (data) {
-        $('#stations-count').text(data.count);
-    });
-}
-
-
-// Function to parse CSV data
-function parseCSV(csvData) {
-    var rows = csvData.split("\n");
-    var importedList = [];
-
-    rows.forEach(function (row) {
-        var columns = row.split("\t");
-        var title = columns[0].replace(/"/g, '');
-        var url = columns[1];
-        var Ovol = columns[2]; // Assuming third column is Ovol
-
-        importedList.push({ title: title, url: url, Ovol: Ovol });
-    });
-    importedList.pop();
-    addImportedItems(importedList);
-}
-
-// Function to add imported items to new list
-function addImportedItems(items) {
-    items.forEach(function (item) {
-        addToNewList(item.title, item.url);
-    });
-
-    // Update the second table
-    updateNewListTable();
-}
-
-
-function get_countries() {
-    $.ajax({
-        url: 'api/countries',
-        method: 'GET',
-        dataType: 'json',
-        success: function (data) {
-            var selectBox = $('#countries');
-
-            // Loop through the JSON data and append options to the select box
-            $.each(data, function (index, value) {
-                console.log(value.name + " : " + value.id);
-                selectBox.append($('<option>', {
-                    value: value.id,
-                    text: value.name
-                }));
-            });
-            //   selectBox.find('option:first').prop('selected', true);
-        },
-        error: function (xhr, status, error) {
-            console.error(status + ': ' + error);
-        }
-    });
-}
-
-var audioPlayer = new Audio();
-
-function createPlayHandler(url) {
-    return function() {
-        playURL(url);
-    };
-}
+// --- Audio ---
 
 function playURL(url) {
     audioPlayer.src = url;
@@ -186,189 +159,97 @@ function stopPlayback() {
     audioPlayer.currentTime = 0;
 }
 
-function createAddHandler(title, url) {
-    return function() {
-        addToNewList(title, url);
-    };
-}
-
-function createRemoveHandler(title, url) {
-    return function() {
-        removeFromNewList(title, url);
-    };
-}
-
-var newList = [];
+// --- Playlist management ---
 
 function addToNewList(title, url) {
-    // Check if the station already exists in the newList array
     var exists = newList.some(function (item) {
         return item.title === title && item.url === url;
     });
-
-    // If the station doesn't exist, add it to the newList array
-    if (!exists) {
-        try {
-            newList.push({title: title, url: url, Ovol: 0});
-            console.log("Added to new list:", title, url);
-            console.log("Updated newList:", newList);
-            // Print new list to the console
-            printNewList();
-
-            // Update the second table
-            updateNewListTable();
-            Swal.fire({
-                toast: true,
-                position: 'top-end',
-                icon: 'success',
-                title: 'Station added to the list!',
-                showConfirmButton: false,
-                timer: 1500
-            });
-        } catch (error) {
-            Swal.fire({
-                toast: true,
-                position: 'top-end',
-                icon: 'error',
-                title: 'There was a problem adding the station.',
-                showConfirmButton: false,
-                timer: 1500
-            });
-        }
-    } else {
-        console.log("Station already exists in the new list:", title, url);
-        Swal.fire({
-            toast: true,
-            position: 'top-end',
-            icon: 'error',
-            title: 'Station already exists in the list!',
-            showConfirmButton: false,
-            timer: 1500
-        });
+    if (exists) {
+        Swal.fire({ toast: true, position: 'top-end', icon: 'error', title: 'Station already exists in the list!', showConfirmButton: false, timer: 1500 });
+        return;
     }
+    newList.push({ title: title, url: url, Ovol: 0 });
+    savePlaylist();
+    updateNewListTable();
+    Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: 'Station added to the list!', showConfirmButton: false, timer: 1500 });
 }
 
 function removeFromNewList(title, url) {
-    try {
-        newList = newList.filter(item => item.title !== title || item.url !== url);
-        console.log("Removed from new list:", title, url);
-        console.log("Updated newList:", newList);
-        // Print new list to the console
-        printNewList();
-
-        // Update the second table
-        updateNewListTable();
-        Swal.fire({
-            toast: true,
-            position: 'top-end',
-            icon: 'success',
-            title: 'Station removed from the list!',
-            showConfirmButton: false,
-            timer: 1500
-        });
-    } catch (error) {
-        Swal.fire({
-            toast: true,
-            position: 'top-end',
-            icon: 'error',
-            title: 'There was a problem removing the station.',
-            showConfirmButton: false,
-            timer: 1500
-        });
-    }
-}
-
-function printNewList() {
-    console.log("Current newList:", newList);
-}
-
-function updateNewListTable() {
-    var newListTable = $('#new-list').DataTable();
-    newListTable.clear();
-
-    newList.forEach(function (item) {
-        console.log(item.title);
-
-        var $removeButton = $('<button>').addClass('btn btn-danger btn-icon').html('<i class="fas fa-times"></i>').attr('title', 'Remove').click(createRemoveHandler(item.title, item.url));
-
-        var $tr = $('<tr>').append(
-            $('<td>').text(item.title),
-            $('<td>').text(item.url),
-            $('<td>').text(item.Ovol),
-            $('<td>').append(
-                $('<div class="action-buttons">').append($removeButton)
-            )
-        );
-
-        newListTable.row.add($tr);
+    newList = newList.filter(function (item) {
+        return !(item.title === title && item.url === url);
     });
-
-    newListTable.draw();
+    savePlaylist();
+    updateNewListTable();
+    Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: 'Station removed from the list!', showConfirmButton: false, timer: 1500 });
 }
 
 function clearNewList() {
     newList = [];
-    console.log("Cleared new list");
+    savePlaylist();
     updateNewListTable();
 }
 
-function exportNewListToCSV() {
-    var csvContent = "data:text/csv;charset=utf-8,";
-
+function updateNewListTable() {
+    var table = $('#new-list').DataTable();
+    table.clear();
     newList.forEach(function (item) {
-        var row = item.title + "\t" + item.url + "\t" + item.Ovol;
-        csvContent += row + "\n";
+        var $remove = $('<button>').addClass('btn btn-danger btn-icon').html('<i class="fas fa-times"></i>').attr('title', 'Remove').click(function () {
+            removeFromNewList(item.title, item.url);
+        });
+        table.row.add($('<tr>').append(
+            $('<td>').text(item.title),
+            $('<td>').text(item.url),
+            $('<td>').text(item.Ovol),
+            $('<td>').append($('<div class="action-buttons">').append($remove))
+        ));
     });
-
-    var encodedUri = encodeURI(csvContent);
-    var link = document.createElement("a");
-    link.setAttribute("href", encodedUri);
-    link.setAttribute("download", "playlist.csv");
-    document.body.appendChild(link); // Required for FF
-
-    link.click(); // This will download the data file named "playlist.csv"
+    table.draw();
 }
 
-function get_stations_by_country(country_id, dataTable) {
-    dataTable.clear().draw(); // Clear existing DataTable
+// --- Import/Export ---
 
-    $.get("/api/stations/" + country_id, function (data) {
-        var batchSize = 100; // Adjust the batch size as needed
-        var index = 0;
+function parseCSV(csvData) {
+    var imported = csvData.trim().split('\n').map(function (row) {
+        var cols = row.split('\t');
+        return { title: cols[0].replace(/"/g, ''), url: cols[1], Ovol: cols[2] || 0 };
+    });
+    imported.forEach(function (item) {
+        addToNewList(item.title, item.url);
+    });
+}
 
-        function processBatch() {
-            for (var i = 0; i < batchSize && index < data.length; i++) {
-                var item = data[index];
-                var maxLength = 20;
-                var truncatedUrl = item["final_url"].length > maxLength ? item["final_url"].substring(0, maxLength) + '...' : item["final_url"];
+function exportNewListToCSV() {
+    var content = newList.map(function (item) {
+        return item.title + '\t' + item.url + '\t' + item.Ovol;
+    }).join('\n');
+    var link = document.createElement('a');
+    link.setAttribute('href', 'data:text/csv;charset=utf-8,' + encodeURI(content));
+    link.setAttribute('download', 'playlist.csv');
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+}
 
-                var $urlLink = $('<a>').attr('href', item["final_url"]).text(truncatedUrl);
-                var $playButton = $('<button>').addClass('btn btn-success btn-icon').html('<i class="fas fa-play"></i>').attr('title', 'Play').click(createPlayHandler(item["final_url"]));
-                var $stopButton = $('<button>').addClass('btn btn-danger btn-icon').html('<i class="fas fa-stop"></i>').attr('title', 'Stop').click(stopPlayback);
-                var $addButton = $('<button>').addClass('btn btn-primary btn-icon').html('<i class="fas fa-plus"></i>').attr('title', 'Add to playlist').click(createAddHandler(item["title"], item["final_url"]));
-                var $removeButton = $('<button>').addClass('btn btn-warning btn-icon').html('<i class="fas fa-times"></i>').attr('title', 'Remove from playlist').click(createRemoveHandler(item["title"], item["final_url"]));
+// --- Stats ---
 
-                var $tr = $('<tr>').append(
-                    $('<td class="vmiddle">').text(item["country"]),
-                    $('<td class="vmiddle">').text(item["title"]),
-                    $('<td class="vmiddle">').append($urlLink),
-                    $('<td class="srv vmiddle" id="' + item["id"] + '" >').append(
-                        $('<div class="action-buttons">').append($playButton, $stopButton, $addButton, $removeButton)
-                    )
-                );
+function get_countries_count() {
+    $.get('api/count/countries', function (data) {
+        $('#countries-count').text(data.count);
+    });
+}
 
-                dataTable.row.add($tr); // Add the row to DataTable
-                index++;
-            }
+function get_stations_count() {
+    $.get('api/count/stations', function (data) {
+        $('#stations-count').text(data.count);
+    });
+}
 
-            dataTable.draw(); // Draw the DataTable after processing the batch
-
-            if (index < data.length) {
-                // Process next batch after a short delay to prevent blocking the main thread
-                setTimeout(processBatch, 0);
-            }
-        }
-
-        processBatch(); // Start processing the first batch
+function get_countries() {
+    $.get('api/countries', function (data) {
+        var select = $('#countries');
+        $.each(data, function (i, v) {
+            select.append($('<option>', { value: v.id, text: v.name }));
+        });
     });
 }

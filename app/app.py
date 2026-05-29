@@ -2,149 +2,117 @@ import uvicorn
 import requests
 from loguru import logger
 from sqliteconnector import SqliteConnector
-from fastapi import FastAPI, Request, File, Form, UploadFile
-from fastapi.responses import UJSONResponse
+from fastapi import FastAPI, Request
 from fastapi.templating import Jinja2Templates
-from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import JSONResponse
-from starlette.responses import FileResponse
-from starlette.responses import StreamingResponse
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.encoders import jsonable_encoder
 from starlette_exporter import PrometheusMiddleware, handle_metrics
 
 
+connector = SqliteConnector()
+connector.create_tables()
+
+app = FastAPI(
+    title="YoRadio stations list creator",
+    description="Create your own stations list the easy way",
+    version="1.0.0",
+    contact={"name": "Tomer Klein", "email": "tomer.klein@gmail.com", "url": "https://github.com/t0mer/yoradio-station-list-builder"},
+)
+
+app.mount("/dist", StaticFiles(directory="dist"), name="dist")
+app.mount("/plugins", StaticFiles(directory="plugins"), name="plugins")
+
+templates = Jinja2Templates(directory="templates/")
+
+app.add_middleware(PrometheusMiddleware)
+app.add_route("/metrics", handle_metrics)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 
-class Server:
-    def __init__(self):
-        self.connector = SqliteConnector()
-        self.connector.create_tables()
+@app.get("/")
+def index(request: Request):
+    return templates.TemplateResponse("index.html", context={"request": request})
 
 
-        self.app = FastAPI(title="YoRadio stations list creator", description="Create you own stations list the easy way", version='1.0.0',  contact={"name": "Tomer Klein", "email": "tomer.klein@gmail.com", "url": "https://github.com/t0mer/yoradio-station-list-builder"})
-        self.app.mount("/dist", StaticFiles(directory="dist"), name="dist")
-        self.app.mount("/plugins", StaticFiles(directory="plugins"), name="plugins")
-        self.app.mount("/js", StaticFiles(directory="dist/js"), name="js")
-        self.app.mount("/css", StaticFiles(directory="dist/css"), name="css")
-        self.templates = Jinja2Templates(directory="templates/")
-        self.app.add_middleware(PrometheusMiddleware)
-        self.app.add_route("/metrics", handle_metrics)
-        self.origins = ["*"]
-
-        self.app.add_middleware(
-            CORSMiddleware,
-            allow_origins=self.origins,
-            allow_credentials=True,
-            allow_methods=["*"],
-            allow_headers=["*"],
-        )
-        
-        
-        @self.app.get("/")
-        def index(request: Request):
-            """
-            Homepage
-            """
-            return self.templates.TemplateResponse('index.html', context={'request': request })   
-        
-        @self.app.get("/api/stations", summary="Get list of stations")
-        def get_stations(request: Request):
-            """
-            Get the list of stations
-            """
-            try:
-                response = self.connector.get_stations(True)
-                return JSONResponse(response)
-            except Exception as e:
-                logger.error("Error fetch images, " + str(e))
-                return None       
-        
-        @self.app.get("/api/stations/{country_id}", summary="Get list of stations by country")
-        def get_stations_by_id(request: Request,country_id:int):
-            """
-            Get list of stations by country
-            """
-            try:
-                response = self.connector.get_stations_by_country_id(country_id,True)
-                return JSONResponse(response)
-            except Exception as e:
-                logger.error("Error fetch images, " + str(e))
-                return None       
+@app.get("/api/stations", summary="Get list of stations")
+def get_stations(request: Request):
+    try:
+        return JSONResponse(connector.get_stations(True))
+    except Exception as e:
+        logger.error("Error fetching stations: " + str(e))
+        return None
 
 
-        @self.app.get("/api/countries", summary="Get list of countries")
-        def get_countries(request: Request):
-            """
-            Get the list of countries
-            """
-            try:
-                response = self.connector.get_countries(True)
-                return JSONResponse(response)
-            except Exception as e:
-                logger.error("Error fetch images, " + str(e))
-                return None       
-        
-        @self.app.get("/api/countries/{country_id}", summary="Get list of stations")
-        def get_country_by_id(request: Request,country_id:int):
-            """
-            Get country by id
-            """
-            try:
-                response = self.connector.get_country_by_id(country_id,True)
-                return JSONResponse(response)
-            except Exception as e:
-                logger.error("Error fetch images, " + str(e))
-                return None     
+@app.get("/api/stations/datatable", summary="Server-side paginated stations for DataTables")
+def get_stations_datatable(request: Request, draw: int = 1, start: int = 0, length: int = 10, search: str = "", country_id: int = 0):
+    try:
+        data, total, filtered = connector.get_stations_paginated(country_id, search, start, length)
+        return JSONResponse({"draw": draw, "recordsTotal": total, "recordsFiltered": filtered, "data": data})
+    except Exception as e:
+        logger.error("Error fetching paginated stations: " + str(e))
+        return JSONResponse({"draw": draw, "recordsTotal": 0, "recordsFiltered": 0, "data": []})
 
 
-
-        
-        @self.app.get("/api/count/countries", summary="Get list of stations")
-        def get_num_of_countries(request: Request):
-            """
-            Get total countries count
-            """
-            try:
-                response = self.connector.get_countries_count()
-                return JSONResponse({"status":"ok","count":response})
-            except Exception as e:
-                logger.error("Error fetch images, " + str(e))
-                return None       
-        
-
-        @self.app.get("/api/count/stations", summary="Get list of stations")
-        def get_num_of_stations(request: Request):
-            """
-            Get total stations count
-            """
-            try:
-                response = self.connector.get_stations_count()
-                return JSONResponse({"status":"ok","count":response})
-            except Exception as e:
-                logger.error("Error fetch images, " + str(e))
-                return None       
-        
-
-        @self.app.get("/api/search/station", summary="Get list of stations")
-        def get_stations_by_id(request: Request,name:str):
-            """
-            Get list of stations by country
-            """
-            try:
-                response = self.connector.search_station(name,True)
-                return JSONResponse(response)
-            except Exception as e:
-                logger.error("Error fetch images, " + str(e))
-                return None       
+@app.get("/api/stations/{country_id}", summary="Get list of stations by country")
+def get_stations_by_id(request: Request, country_id: int):
+    try:
+        return JSONResponse(connector.get_stations_by_country_id(country_id, True))
+    except Exception as e:
+        logger.error("Error fetching stations by country: " + str(e))
+        return None
 
 
-        
-    def start(self):
-        uvicorn.run(self.app, host="0.0.0.0", port=8082)
-        
-        
-if __name__=="__main__":
-    server = Server()
-    server.start()
+@app.get("/api/countries", summary="Get list of countries")
+def get_countries(request: Request):
+    try:
+        return JSONResponse(connector.get_countries(True))
+    except Exception as e:
+        logger.error("Error fetching countries: " + str(e))
+        return None
+
+
+@app.get("/api/countries/{country_id}", summary="Get country by id")
+def get_country_by_id(request: Request, country_id: int):
+    try:
+        return JSONResponse(connector.get_country_by_id(country_id, True))
+    except Exception as e:
+        logger.error("Error fetching country: " + str(e))
+        return None
+
+
+@app.get("/api/count/countries", summary="Get total countries count")
+def get_num_of_countries(request: Request):
+    try:
+        return JSONResponse({"status": "ok", "count": connector.get_countries_count()})
+    except Exception as e:
+        logger.error("Error fetching countries count: " + str(e))
+        return None
+
+
+@app.get("/api/count/stations", summary="Get total stations count")
+def get_num_of_stations(request: Request):
+    try:
+        return JSONResponse({"status": "ok", "count": connector.get_stations_count()})
+    except Exception as e:
+        logger.error("Error fetching stations count: " + str(e))
+        return None
+
+
+@app.get("/api/search/station", summary="Search stations by name")
+def search_station(request: Request, name: str):
+    try:
+        return JSONResponse(connector.search_station(name, True))
+    except Exception as e:
+        logger.error("Error searching stations: " + str(e))
+        return None
+
+
+if __name__ == "__main__":
+    uvicorn.run(app, host="0.0.0.0", port=8082)
