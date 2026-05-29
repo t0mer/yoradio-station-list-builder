@@ -77,11 +77,12 @@ $(document).ready(function () {
                 targets: 3,
                 orderable: false,
                 render: function (data, type, row) {
+                    var safeUrl = escapeHtml(row.final_url);
                     return '<div class="action-buttons">'
-                        + '<button class="btn btn-success btn-icon play-btn" data-url="' + row.final_url + '" title="Play"><i class="fas fa-play"></i></button>'
+                        + '<button class="btn btn-success btn-icon play-btn" data-url="' + safeUrl + '" title="Play"><i class="fas fa-play"></i></button>'
                         + '<button class="btn btn-danger btn-icon stop-btn" title="Stop"><i class="fas fa-stop"></i></button>'
-                        + '<button class="btn btn-primary btn-icon add-btn" data-title="' + escapeHtml(row.title) + '" data-url="' + row.final_url + '" title="Add to playlist"><i class="fas fa-plus"></i></button>'
-                        + '<button class="btn btn-warning btn-icon remove-btn" data-title="' + escapeHtml(row.title) + '" data-url="' + row.final_url + '" title="Remove from playlist"><i class="fas fa-times"></i></button>'
+                        + '<button class="btn btn-primary btn-icon add-btn" data-title="' + escapeHtml(row.title) + '" data-url="' + safeUrl + '" title="Add to playlist"><i class="fas fa-plus"></i></button>'
+                        + '<button class="btn btn-warning btn-icon remove-btn" data-title="' + escapeHtml(row.title) + '" data-url="' + safeUrl + '" title="Remove from playlist"><i class="fas fa-times"></i></button>'
                         + '</div>';
                 }
             }
