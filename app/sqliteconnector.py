@@ -98,8 +98,8 @@ class SqliteConnector:
         try:
             self.open_connection()
             cursor = self.conn.cursor()
-            query = f"""select name, id from countries where id={country_id}"""
-            cursor.execute(query)
+            query = "select name, id from countries where id=?"
+            cursor.execute(query, (country_id,))
             if api_call == True:
                 rows = [dict((cursor.description[i][0], value) \
                 for i, value in enumerate(row)) for row in cursor.fetchall()]
@@ -122,13 +122,13 @@ class SqliteConnector:
         try:
             self.open_connection()
             cursor = self.conn.cursor()
-            query = f'''
+            query = """
         SELECT Stations.id, Stations.title, Stations.final_url, Stations.country_id, Countries.name as country
-        FROM Stations  
+        FROM Stations
         JOIN Countries ON Stations.country_id = Countries.id
-        WHERE Stations.title LIKE "%{name}%"
-        '''
-            cursor.execute(query)
+        WHERE Stations.title LIKE ?
+        """
+            cursor.execute(query, (f"%{name}%",))
             if api_call == True:
                 rows = [dict((cursor.description[i][0], value) \
                 for i, value in enumerate(row)) for row in cursor.fetchall()]
@@ -149,12 +149,12 @@ class SqliteConnector:
         try:
             self.open_connection()
             cursor = self.conn.cursor()
-            query = f"""
+            query = """
                     SELECT Stations.id, Stations.title, Stations.final_url, Stations.country_id, Countries.name as country
-                    FROM Stations  
-                    JOIN Countries ON Stations.country_id = Countries.id 
-                    where Stations.country_id = {country_id}"""
-            cursor.execute(query)
+                    FROM Stations
+                    JOIN Countries ON Stations.country_id = Countries.id
+                    WHERE Stations.country_id = ?"""
+            cursor.execute(query, (country_id,))
             if api_call == True:
                 rows = [dict((cursor.description[i][0], value) \
                 for i, value in enumerate(row)) for row in cursor.fetchall()]
