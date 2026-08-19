@@ -218,6 +218,19 @@ function removeFromNewList(title, url) {
     Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: 'Station removed from the list!', showConfirmButton: false, timer: 1500 });
 }
 
+// Playlist order is the station order on the YoRadio device, so moving an entry
+// is a first-class action rather than a table sort.
+function moveInNewList(index, delta) {
+    var target = index + delta;
+    if (index < 0 || index >= newList.length || target < 0 || target >= newList.length) {
+        return;
+    }
+    var moved = newList.splice(index, 1)[0];
+    newList.splice(target, 0, moved);
+    savePlaylist();
+    updateNewListTable();
+}
+
 function clearNewList() {
     newList = [];
     savePlaylist();
@@ -227,15 +240,38 @@ function clearNewList() {
 function updateNewListTable() {
     var table = $('#new-list').DataTable();
     table.clear();
-    newList.forEach(function (item) {
-        var $remove = $('<button>').addClass('btn btn-danger btn-icon').html('<i class="fas fa-times"></i>').attr('title', 'Remove').click(function () {
-            removeFromNewList(item.title, item.url);
-        });
+    newList.forEach(function (item, index) {
+        var $up = $('<button>')
+            .addClass('btn btn-muted btn-icon')
+            .html('<i class="fas fa-arrow-up"></i>')
+            .attr({ title: 'Move up', 'aria-label': 'Move ' + item.title + ' up' })
+            .prop('disabled', index === 0)
+            .click(function () {
+                moveInNewList(index, -1);
+            });
+
+        var $down = $('<button>')
+            .addClass('btn btn-muted btn-icon')
+            .html('<i class="fas fa-arrow-down"></i>')
+            .attr({ title: 'Move down', 'aria-label': 'Move ' + item.title + ' down' })
+            .prop('disabled', index === newList.length - 1)
+            .click(function () {
+                moveInNewList(index, 1);
+            });
+
+        var $remove = $('<button>')
+            .addClass('btn btn-danger btn-icon')
+            .html('<i class="fas fa-times"></i>')
+            .attr({ title: 'Remove', 'aria-label': 'Remove ' + item.title })
+            .click(function () {
+                removeFromNewList(item.title, item.url);
+            });
+
         table.row.add($('<tr>').append(
             $('<td>').text(item.title),
             $('<td>').addClass('url-cell').attr('title', item.url).text(item.url),
             $('<td>').text(item.Ovol),
-            $('<td>').append($('<div class="action-buttons">').append($remove))
+            $('<td>').append($('<div class="action-buttons">').append($up, $down, $remove))
         ));
     });
     table.draw();
