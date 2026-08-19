@@ -1,0 +1,24 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "yoradio-station-list-builder",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-08-19",
+  "observability": { "enabled": true },
+  "assets": {
+    "directory": "./public/",
+    "binding": "ASSETS",
+    // API routes must reach the Worker even if an asset path would collide.
+    "run_worker_first": ["/api/*"]
+    // not_found_handling intentionally left at its "none" default:
+    // "single-page-application" would rewrite unmatched /api/ paths to
+    // index.html, turning genuine API 404s into HTML 200s.
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "yoradio-stations",
+      // Replace after `npx wrangler d1 create yoradio-stations`.
+      "database_id": "REPLACE_WITH_D1_DATABASE_ID"
+    }
+  ]
+}
