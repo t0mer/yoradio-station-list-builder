@@ -9,7 +9,11 @@ const REFERENCED = [
   "/plugins/jquery/jquery.min.js",
   "/plugins/datatables/jquery.dataTables.min.js",
   "/plugins/datatables-responsive/js/dataTables.responsive.min.js",
-  "/plugins/datatables-rowreorder/js/dataTables.rowReorder.min.js",
+  // Flags are requested by main.js rather than the markup, so the "references
+  // no asset that is not served" check below cannot see them.
+  "/flags/France.png",
+  "/flags/United_States.png",
+  "/flags/%C3%85land_Islands.png",
 ];
 
 describe("static assets", () => {
