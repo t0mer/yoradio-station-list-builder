@@ -7,6 +7,44 @@ browser, and export it as a tab-separated list for
 Runs on Cloudflare Workers: a single Worker serves the UI as static assets and
 the JSON API from a [D1](https://developers.cloudflare.com/d1/) database.
 
+## The app
+
+Pick a country or search across all 38,116 stations, preview a stream in the
+browser, and add the ones you want. The playlist is built client-side and kept
+in `localStorage`, so it survives a reload.
+
+![Overview](assets/screenshots/overview-light.png)
+
+### Browsing and previewing
+
+Play any station in place: the button becomes a stop control, and a banner
+tracks what is playing while you carry on browsing. A stream that cannot be
+reached says so instead of failing silently. Stations already in your playlist
+are marked, so you can see at a glance what you have picked.
+
+![Browsing stations](assets/screenshots/browse-stations.png)
+
+### Building the playlist
+
+Position in the list is position on the device, so entries are moved up and
+down rather than sorted. Each station's volume offset is edited inline, and the
+list exports to the tab-separated file YoRadio reads.
+
+![Building the playlist](assets/screenshots/playlist-light.png)
+
+### Dark mode
+
+The theme follows the operating system preference.
+
+![Dark mode](assets/screenshots/overview-dark.png)
+
+### Small screens
+
+Below the mobile breakpoint the tables keep the columns that matter — station
+name and the controls — and collapse the rest into a row you can expand.
+
+![Mobile layout](assets/screenshots/mobile.png)
+
 ## Layout
 
 | Path | What it is |
@@ -18,6 +56,7 @@ the JSON API from a [D1](https://developers.cloudflare.com/d1/) database.
 | `scripts/build-migrations.py` | Regenerates `migrations/` from the SQLite database |
 | `legacy/` | The original FastAPI app. **Unmaintained**, kept for reference |
 | `legacy/db/stations.db` | Source of truth for the station data |
+| `assets/screenshots/` | README images |
 
 ## First-time setup
 
@@ -110,9 +149,18 @@ All endpoints are read-only and CORS-open.
 
 ## Playlist format
 
-Tab-separated, one station per line: `title\turl\tOvol\n`, exported as
-`playlist.csv`. `Ovol` (output volume) is `0` for newly added stations. Import
-parses the same format. The playlist lives entirely in the browser — nothing is
+Tab-separated, one newline-terminated record per station —
+`title\turl\tOvol\n` — exported as `playlist.csv`.
+
+- **Order is meaningful.** A station's position in the file is its position on
+  the device, which is why the playlist is reordered by hand and never sorted.
+- **`Ovol`** is the per-station volume offset. It defaults to `0` and is edited
+  inline in the playlist table.
+- **Import** reads the same format. A row needs a title and an `http(s)` URL to
+  be accepted; blank lines, malformed rows, and stations already in the list are
+  counted and reported rather than quietly added. CRLF files are handled.
+
+The playlist lives entirely in the browser, saved to `localStorage` — nothing is
 stored server-side.
 
 ## Updating the station list
