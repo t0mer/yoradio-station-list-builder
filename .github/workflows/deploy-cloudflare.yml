@@ -1,0 +1,42 @@
+name: Deploy to Cloudflare
+
+# Manual only: deploys are intentional, never a side effect of a push.
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: "Wrangler environment (blank = top-level config)"
+        required: false
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Test
+        run: npm test
+
+      # Pin to a commit SHA for release-critical use.
+      - name: Deploy Worker
+        uses: cloudflare/wrangler-action@v3
+        env:
+          ENVIRONMENT: ${{ github.event.inputs.environment }}
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: deploy ${{ github.event.inputs.environment && format('--env {0}', github.event.inputs.environment) || '' }}
