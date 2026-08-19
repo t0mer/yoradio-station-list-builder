@@ -33,4 +33,8 @@ jobs:
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          # Migrations are tracked in the d1_migrations table, so this is a
+          # no-op on every deploy after the first. Uses the binding name (DB)
+          # so it works whatever the database is named.
+          preCommands: npx wrangler d1 migrations apply DB --remote
           command: deploy
