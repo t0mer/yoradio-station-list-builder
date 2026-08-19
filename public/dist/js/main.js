@@ -23,6 +23,19 @@ $(document).ready(function () {
     get_stations_count();
     get_countries();
 
+    // Initialise the playlist table explicitly. Declaring the widths up front
+    // (with autoWidth off) is what stops a long stream URL from collapsing the
+    // station name column.
+    $('#new-list').DataTable({
+        autoWidth: false,
+        columns: [
+            { width: '42%' },
+            { width: '34%' },
+            { width: '10%' },
+            { width: '14%', orderable: false }
+        ]
+    });
+
     // Restore playlist from localStorage
     newList = loadPlaylist();
     updateNewListTable();
@@ -199,7 +212,7 @@ function updateNewListTable() {
         });
         table.row.add($('<tr>').append(
             $('<td>').text(item.title),
-            $('<td>').text(item.url),
+            $('<td>').addClass('url-cell').attr('title', item.url).text(item.url),
             $('<td>').text(item.Ovol),
             $('<td>').append($('<div class="action-buttons">').append($remove))
         ));

@@ -354,6 +354,27 @@
       overflow-x: auto;
     }
 
+    /* Playlist table: a fixed layout keeps the columns at their declared
+       widths, so a single very long stream URL can no longer expand its own
+       column and squeeze the station name down to a few characters. */
+    #new-list {
+      table-layout: fixed;
+    }
+
+    #new-list td {
+      overflow-wrap: anywhere;
+    }
+
+    /* The URL is reference data, not something anyone reads in full: clip it
+       to one line. The full value stays available via the title tooltip. */
+    #new-list td.url-cell {
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      color: var(--text-secondary);
+      font-size: 0.875rem;
+    }
+
     .loading-overlay {
       position: fixed;
       top: 0;
