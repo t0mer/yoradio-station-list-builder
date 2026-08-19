@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /
+
+# The JSON API is read-only but D1 bills rows read, and crawling it would burn
+# the daily quota for no search benefit. The UI at / is the indexable surface.
+Disallow: /api/
+
+Sitemap: https://yoradio.licar.biz/sitemap.xml
