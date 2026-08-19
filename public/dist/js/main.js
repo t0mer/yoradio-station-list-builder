@@ -28,11 +28,12 @@ $(document).ready(function () {
     // station name column.
     $('#new-list').DataTable({
         autoWidth: false,
+        responsive: true,
         columns: [
-            { width: '42%' },
-            { width: '34%' },
-            { width: '10%' },
-            { width: '14%', orderable: false }
+            { width: '42%', responsivePriority: 1 },
+            { width: '34%', responsivePriority: 4 },
+            { width: '10%', responsivePriority: 3 },
+            { width: '14%', responsivePriority: 2, orderable: false }
         ]
     });
 
@@ -58,6 +59,7 @@ $(document).ready(function () {
         serverSide: true,
         processing: true,
         searching: true,
+        responsive: true,
         bLengthChange: false,
         ajax: {
             url: '/api/stations/datatable',
@@ -72,11 +74,14 @@ $(document).ready(function () {
                 };
             }
         },
+        // Priorities decide what survives on a narrow screen: the station name
+        // and the action buttons stay, the URL collapses into the child row
+        // first, then the country.
         columns: [
-            { data: 'country' },
-            { data: 'title' },
-            { data: 'final_url' },
-            { data: null }
+            { data: 'country', responsivePriority: 3 },
+            { data: 'title', responsivePriority: 1 },
+            { data: 'final_url', responsivePriority: 4 },
+            { data: null, responsivePriority: 2 }
         ],
         columnDefs: [
             {
