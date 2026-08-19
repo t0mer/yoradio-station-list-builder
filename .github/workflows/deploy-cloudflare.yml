@@ -1,0 +1,40 @@
+name: Deploy to Cloudflare
+
+# Manual only: deploys are intentional, never a side effect of a push.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Test
+        run: npm test
+
+      # Pin to a commit SHA for release-critical use.
+      - name: Deploy Worker
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          # Migrations are tracked in the d1_migrations table, so this is a
+          # no-op on every deploy after the first. Uses the binding name (DB)
+          # so it works whatever the database is named.
+          preCommands: npx wrangler d1 migrations apply DB --remote
+          command: deploy
