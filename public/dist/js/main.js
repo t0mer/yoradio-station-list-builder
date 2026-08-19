@@ -46,10 +46,16 @@ $(document).ready(function () {
         $('#import-file').click();
     });
     $('#import-file').change(function () {
-        var file = $(this)[0].files[0];
+        var input = this;
+        var file = input.files[0];
+        if (!file) {
+            return;
+        }
         var reader = new FileReader();
         reader.onload = function (e) {
             parseCSV(e.target.result);
+            // Clear the input so re-importing the same file fires change again.
+            input.value = '';
         };
         reader.readAsText(file);
     });
@@ -227,13 +233,63 @@ function updateNewListTable() {
 
 // --- Import/Export ---
 
+function normaliseOvol(value) {
+    var parsed = parseInt(value, 10);
+    return isNaN(parsed) || parsed < 0 ? 0 : parsed;
+}
+
 function parseCSV(csvData) {
-    var imported = csvData.trim().split('\n').map(function (row) {
-        var cols = row.split('\t');
-        return { title: cols[0].replace(/"/g, ''), url: cols[1], Ovol: cols[2] || 0 };
+    var added = 0;
+    var duplicates = 0;
+    var skipped = 0;
+
+    csvData.split(/\r?\n/).forEach(function (line) {
+        if (!line.trim()) {
+            return;
+        }
+
+        var cols = line.split('\t');
+        var title = (cols[0] || '').replace(/"/g, '').trim();
+        var url = (cols[1] || '').trim();
+
+        // A usable record needs a name and an http(s) stream URL. Without this
+        // check a line with no tab was imported as an entry whose url was
+        // undefined, which then exported back out as the string "undefined".
+        if (!title || !/^https?:\/\//i.test(url)) {
+            skipped++;
+            return;
+        }
+
+        var exists = newList.some(function (item) {
+            return item.title === title && item.url === url;
+        });
+        if (exists) {
+            duplicates++;
+            return;
+        }
+
+        newList.push({ title: title, url: url, Ovol: normaliseOvol(cols[2]) });
+        added++;
     });
-    imported.forEach(function (item) {
-        addToNewList(item.title, item.url);
+
+    savePlaylist();
+    updateNewListTable();
+
+    // One summary toast for the whole file rather than one per row.
+    var summary = added + ' station' + (added === 1 ? '' : 's') + ' imported';
+    if (duplicates) {
+        summary += ', ' + duplicates + ' already in the list';
+    }
+    if (skipped) {
+        summary += ', ' + skipped + ' skipped';
+    }
+    Swal.fire({
+        toast: true,
+        position: 'top-end',
+        icon: added ? 'success' : 'error',
+        title: summary,
+        showConfirmButton: false,
+        timer: 2500
     });
 }
 
