@@ -415,21 +415,39 @@
 
     /* Playlist table: a fixed layout keeps the columns at their declared
        widths, so a single very long stream URL can no longer expand its own
-       column and squeeze the station name down to a few characters. */
-    #new-list {
-      table-layout: fixed;
+       column and squeeze the station name down to a few characters.
+
+       Only above the mobile breakpoint, though: a fixed layout always reports
+       that it fits, which stops DataTables Responsive from ever detecting the
+       overflow it needs to collapse columns into the child row. */
+    @media (min-width: 769px) {
+      #new-list {
+        table-layout: fixed;
+      }
+
+      #new-list th:nth-child(1) { width: 42%; }
+      #new-list th:nth-child(2) { width: 34%; }
+      #new-list th:nth-child(3) { width: 10%; }
+      #new-list th:nth-child(4) { width: 14%; }
+
+      /* The URL is reference data, not something anyone reads in full: clip it
+         to one line, with the full value on the title tooltip. max-width:0 is
+         what keeps the clipped text from still counting as its full length when
+         Responsive measures the column — without it a long URL makes the column
+         look far too wide to fit and Responsive hides it outright. */
+      #new-list td.url-cell {
+        max-width: 0;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
     }
 
     #new-list td {
       overflow-wrap: anywhere;
     }
 
-    /* The URL is reference data, not something anyone reads in full: clip it
-       to one line. The full value stays available via the title tooltip. */
     #new-list td.url-cell {
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
       color: var(--text-secondary);
       font-size: 0.875rem;
     }

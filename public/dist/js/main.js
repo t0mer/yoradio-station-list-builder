@@ -42,10 +42,10 @@ $(document).ready(function () {
             emptyTable: 'No stations yet — add some from the list above.'
         },
         columns: [
-            { width: '42%', responsivePriority: 1 },
-            { width: '34%', responsivePriority: 4 },
-            { width: '10%', responsivePriority: 3 },
-            { width: '14%', responsivePriority: 2, orderable: false }
+            { responsivePriority: 1 },
+            { responsivePriority: 4 },
+            { responsivePriority: 3 },
+            { responsivePriority: 2, orderable: false }
         ]
     });
 
@@ -438,6 +438,13 @@ function updateNewListTable() {
         ));
     });
     table.draw();
+
+    // Responsive measures column widths once, and the first measurement happens
+    // while the playlist is still empty. Without this the collapse thresholds
+    // stay stale and nothing ever moves into the child row on a narrow screen.
+    if (table.responsive) {
+        table.responsive.recalc();
+    }
 }
 
 // --- Import/Export ---
