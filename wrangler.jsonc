@@ -18,7 +18,8 @@
       "binding": "DB",
       "database_name": "yoradio-stations",
       // Replace after `npx wrangler d1 create yoradio-stations`.
-      "database_id": "REPLACE_WITH_D1_DATABASE_ID"
+      "database_id": "REPLACE_WITH_D1_DATABASE_ID",
+      "migrations_dir": "migrations"
     }
   ]
 }

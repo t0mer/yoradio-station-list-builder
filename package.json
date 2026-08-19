@@ -7,11 +7,14 @@
   "scripts": {
     "postinstall": "wrangler types",
     "dev": "wrangler dev",
-    "deploy": "wrangler deploy",
+    "deploy": "npm run migrations:apply && wrangler deploy",
+    "migrations:apply": "wrangler d1 migrations apply DB --remote",
+    "migrations:apply:local": "wrangler d1 migrations apply DB --local",
+    "migrations:build": "python3 scripts/build-migrations.py",
+    "migrations:list": "wrangler d1 migrations list DB --remote",
     "test": "vitest run",
     "test:watch": "vitest",
     "types": "wrangler types",
-    "seed:build": "./scripts/build-seed.sh",
     "typecheck": "tsc --noEmit"
   },
   "devDependencies": {
