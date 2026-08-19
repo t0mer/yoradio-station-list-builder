@@ -1,6 +1,9 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
   <!-- Google tag (gtag.js) -->
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-3SRVTCTFQM"></script>
   <script>
@@ -10,14 +13,110 @@
 
     gtag('config', 'G-3SRVTCTFQM');
   </script>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>YoRadio stations list creator</title>
-  <meta property="og:title" content="YoRadio stations list creator" />
-  <meta property="og:description" content="Easily create stations playlist. Select from 38,116 stations from 228 countries." />
-  <meta property="og:image" content="https://yoradio.licar.biz/dist/img/yoradio.png" />
-  <meta property="og:image:width" content="1408" />
-  <meta property="og:image:height" content="881" />
+  <title>YoRadio Station List Builder — Free playlist.csv Creator</title>
+  <meta name="description" content="Browse 38,116 internet radio stations from 228 countries, preview streams in your browser, and export a ready-to-use playlist.csv for your YoRadio device.">
+  <meta name="keywords" content="YoRadio, yoRadio playlist, playlist.csv, station list builder, internet radio, web radio, radio stations, radio playlist, ESP32 web radio, Tomer Klein, תומר קליין, רדיו אינטרנט, תחנות רדיו">
+  <meta name="author" content="Tomer Klein (תומר קליין)">
+  <link rel="canonical" href="https://yoradio.licar.biz/">
+  <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
+
+  <!-- Open Graph -->
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="YoRadio Station List Builder">
+  <meta property="og:url" content="https://yoradio.licar.biz/">
+  <meta property="og:title" content="YoRadio Station List Builder — Free playlist.csv Creator">
+  <meta property="og:description" content="Browse 38,116 internet radio stations from 228 countries, preview streams in your browser, and export a ready-to-use playlist.csv for your YoRadio device.">
+  <meta property="og:image" content="https://yoradio.licar.biz/og-image.png">
+  <meta property="og:image:secure_url" content="https://yoradio.licar.biz/og-image.png">
+  <meta property="og:image:type" content="image/png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="YoRadio Station List Builder — 38,116 stations from 228 countries, free, no account needed">
+  <meta property="og:locale" content="en_US">
+
+  <!-- Twitter -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="YoRadio Station List Builder — Free playlist.csv Creator">
+  <meta name="twitter:description" content="Browse 38,116 internet radio stations from 228 countries, preview streams in your browser, and export a ready-to-use playlist.csv for your YoRadio device.">
+  <meta name="twitter:image" content="https://yoradio.licar.biz/og-image.png">
+  <meta name="twitter:image:alt" content="YoRadio Station List Builder — 38,116 stations from 228 countries, free, no account needed">
+
+  <!-- Structured data -->
+  <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "WebSite",
+      "@id": "https://yoradio.licar.biz/#website",
+      "url": "https://yoradio.licar.biz/",
+      "name": "YoRadio Station List Builder",
+      "description": "Browse 38,116 internet radio stations from 228 countries, preview streams in your browser, and export a ready-to-use playlist.csv for your YoRadio device.",
+      "inLanguage": "en",
+      "publisher": {
+        "@id": "https://yoradio.licar.biz/#author"
+      }
+    },
+    {
+      "@type": "WebApplication",
+      "@id": "https://yoradio.licar.biz/#app",
+      "url": "https://yoradio.licar.biz/",
+      "name": "YoRadio Station List Builder",
+      "alternateName": "YoRadio stations list creator",
+      "description": "Browse 38,116 internet radio stations from 228 countries, preview streams in your browser, and export a ready-to-use playlist.csv for your YoRadio device.",
+      "applicationCategory": "MultimediaApplication",
+      "applicationSubCategory": "Internet radio playlist builder",
+      "operatingSystem": "Any",
+      "browserRequirements": "Requires JavaScript",
+      "inLanguage": "en",
+      "isAccessibleForFree": true,
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "USD"
+      },
+      "featureList": [
+        "Browse 38,116 internet radio stations from 228 countries",
+        "Filter by country or search every station by name",
+        "Preview any stream directly in the browser",
+        "Build, reorder and store a playlist locally",
+        "Set a per-station volume offset",
+        "Export playlist.csv for a YoRadio device",
+        "Import an existing playlist"
+      ],
+      "screenshot": "https://yoradio.licar.biz/og-image.png",
+      "image": "https://yoradio.licar.biz/og-image.png",
+      "author": {
+        "@id": "https://yoradio.licar.biz/#author"
+      },
+      "creator": {
+        "@id": "https://yoradio.licar.biz/#author"
+      },
+      "isPartOf": {
+        "@id": "https://yoradio.licar.biz/#website"
+      }
+    },
+    {
+      "@type": "Person",
+      "@id": "https://yoradio.licar.biz/#author",
+      "name": "Tomer Klein",
+      "alternateName": "תומר קליין",
+      "sameAs": [
+        "https://github.com/t0mer"
+      ]
+    }
+  ]
+}
+  </script>
+
+  <!-- Icons -->
+  <link rel="icon" href="/favicon.ico" sizes="32x32">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="icon" href="/favicon-32.png" type="image/png" sizes="32x32">
+  <link rel="icon" href="/favicon-16.png" type="image/png" sizes="16x16">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png" sizes="180x180">
+  <link rel="manifest" href="/site.webmanifest">
+  <meta name="theme-color" content="#6366f1">
 
   <!-- Modern Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -670,8 +769,8 @@
   <div class="container">
     <!-- Header Section -->
     <div class="header fade-in">
-      <h1><i class="fas fa-radio"></i> YoRadio</h1>
-      <p>Create your perfect radio station playlist from thousands of stations worldwide</p>
+      <h1><i class="fas fa-radio"></i> YoRadio Station List Builder</h1>
+      <p>Browse 38,116 internet radio stations from 228 countries, preview them, and export a playlist.csv for your YoRadio device</p>
     </div>
 
     <!-- Statistics Cards -->

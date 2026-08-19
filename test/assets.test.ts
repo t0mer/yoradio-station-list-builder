@@ -14,6 +14,14 @@ const REFERENCED = [
   "/flags/France.png",
   "/flags/United_States.png",
   "/flags/%C3%85land_Islands.png",
+  // SEO assets. robots.txt and sitemap.xml are fetched by crawlers and og-image
+  // by scrapers, so nothing in the markup links them either.
+  "/robots.txt",
+  "/sitemap.xml",
+  "/og-image.png",
+  "/favicon.ico",
+  "/apple-touch-icon.png",
+  "/site.webmanifest",
 ];
 
 describe("static assets", () => {
