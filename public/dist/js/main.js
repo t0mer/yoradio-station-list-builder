@@ -101,6 +101,12 @@ $(document).ready(function () {
         ],
         columnDefs: [
             {
+                targets: 0,
+                render: function (data) {
+                    return flagImage(data) + escapeHtml(data);
+                }
+            },
+            {
                 targets: 2,
                 render: function (data) {
                     var truncated = data.length > 20 ? data.substring(0, 20) + '...' : data;
@@ -122,6 +128,14 @@ $(document).ready(function () {
             }
         ]
     });
+
+    // Error events don't bubble, so listen on the capture phase: a country with
+    // no flag file keeps its slot but shows nothing rather than a broken image.
+    document.getElementById('stations-by-countries').addEventListener('error', function (e) {
+        if (e.target.classList && e.target.classList.contains('flag')) {
+            e.target.style.visibility = 'hidden';
+        }
+    }, true);
 
     // Delegated event handlers for dynamically rendered rows
     $('#stations-by-countries tbody').on('click', '.play-btn', function () {
@@ -172,6 +186,14 @@ $(document).ready(function () {
 });
 
 // --- Utility ---
+
+// Flag files are named after the country with spaces as underscores. Only 188 of
+// the 228 countries have one; the rest fall back to a blank slot of the same
+// size (see the capture-phase error handler) so the names stay aligned.
+function flagImage(country) {
+    var file = encodeURIComponent(String(country).replace(/ /g, '_') + '.png');
+    return '<img class="flag" src="flags/' + file + '" alt="" loading="lazy">';
+}
 
 function escapeHtml(str) {
     return String(str)
