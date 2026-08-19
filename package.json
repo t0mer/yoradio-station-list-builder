@@ -2,18 +2,20 @@
   "name": "yoradio-station-list-builder",
   "version": "1.0.0",
   "private": true,
+  "type": "module",
   "description": "Create your own YoRadio stations list the easy way",
   "scripts": {
+    "postinstall": "wrangler types",
     "dev": "wrangler dev",
     "deploy": "wrangler deploy",
     "test": "vitest run",
     "test:watch": "vitest",
+    "types": "wrangler types",
     "seed:build": "./scripts/build-seed.sh",
     "typecheck": "tsc --noEmit"
   },
   "devDependencies": {
     "@cloudflare/vitest-pool-workers": "^0.22.0",
-    "@cloudflare/workers-types": "^5.20260818.1",
     "typescript": "^5.9.3",
     "vitest": "^4.1.11",
     "wrangler": "^4.124.0"
