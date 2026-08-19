@@ -26,9 +26,19 @@ $(document).ready(function () {
     // Initialise the playlist table explicitly. Declaring the widths up front
     // (with autoWidth off) is what stops a long stream URL from collapsing the
     // station name column.
+    // The playlist is an ordered list, not a data grid: its row order is the
+    // station order on the device, so sorting, paging and a second search box
+    // would all misrepresent what the user is building.
     $('#new-list').DataTable({
         autoWidth: false,
         responsive: true,
+        ordering: false,
+        paging: false,
+        searching: false,
+        info: false,
+        language: {
+            emptyTable: 'No stations yet — add some from the list above.'
+        },
         columns: [
             { width: '42%', responsivePriority: 1 },
             { width: '34%', responsivePriority: 4 },
