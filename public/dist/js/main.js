@@ -238,15 +238,22 @@ function parseCSV(csvData) {
 }
 
 function exportNewListToCSV() {
+    // One newline-terminated "title\turl\tOvol" record per station, as YoRadio
+    // expects. Built as a Blob rather than a data: URL — encodeURI leaves '#'
+    // untouched, so a station like "Rock #1" silently truncated the download at
+    // the fragment marker.
     var content = newList.map(function (item) {
-        return item.title + '\t' + item.url + '\t' + item.Ovol;
-    }).join('\n');
+        return item.title + '\t' + item.url + '\t' + item.Ovol + '\n';
+    }).join('');
+    var blob = new Blob([content], { type: 'text/csv;charset=utf-8' });
+    var url = URL.createObjectURL(blob);
     var link = document.createElement('a');
-    link.setAttribute('href', 'data:text/csv;charset=utf-8,' + encodeURI(content));
-    link.setAttribute('download', 'playlist.csv');
+    link.href = url;
+    link.download = 'playlist.csv';
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+    URL.revokeObjectURL(url);
 }
 
 // --- Stats ---
