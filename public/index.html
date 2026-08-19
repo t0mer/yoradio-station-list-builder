@@ -161,6 +161,25 @@
       margin-bottom: 2rem;
     }
 
+    .now-playing {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      flex-wrap: wrap;
+      margin-bottom: 1.5rem;
+      padding: 0.75rem 1rem;
+      border: 1px solid var(--border-color);
+      border-left: 4px solid var(--accent-color);
+      border-radius: var(--radius-sm);
+      background: var(--surface-hover);
+    }
+
+    .now-playing-title {
+      font-weight: 600;
+      overflow-wrap: anywhere;
+    }
+
     .form-group {
       margin-bottom: 1.5rem;
     }
@@ -666,6 +685,16 @@
           </div>
         </div>
         
+        <div id="now-playing" class="now-playing hidden">
+          <span class="now-playing-title">
+            <i class="fas fa-volume-high"></i>
+            <span id="now-playing-status">Loading</span>&nbsp;&mdash;&nbsp;<span id="now-playing-name"></span>
+          </span>
+          <button id="now-playing-stop" class="btn btn-danger btn-sm">
+            <i class="fas fa-stop"></i> Stop
+          </button>
+        </div>
+
         <div class="responsive-table">
           <div class="table-container">
             <table id="stations-by-countries" class="table">

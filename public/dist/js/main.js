@@ -1,6 +1,8 @@
 var newList = [];
 var audioPlayer = new Audio();
 var selectedCountryId = 0;
+var currentStation = null;
+var playerState = 'stopped';
 
 // --- localStorage persistence ---
 
@@ -118,15 +120,20 @@ $(document).ready(function () {
                 orderable: false,
                 render: function (data, type, row) {
                     var safeUrl = escapeHtml(row.final_url);
+                    var safeTitle = escapeHtml(row.title);
                     return '<div class="action-buttons">'
-                        + '<button class="btn btn-success btn-icon play-btn" data-url="' + safeUrl + '" title="Play"><i class="fas fa-play"></i></button>'
-                        + '<button class="btn btn-danger btn-icon stop-btn" title="Stop"><i class="fas fa-stop"></i></button>'
-                        + '<button class="btn btn-primary btn-icon add-btn" data-title="' + escapeHtml(row.title) + '" data-url="' + safeUrl + '" title="Add to playlist"><i class="fas fa-plus"></i></button>'
-                        + '<button class="btn btn-warning btn-icon remove-btn" data-title="' + escapeHtml(row.title) + '" data-url="' + safeUrl + '" title="Remove from playlist"><i class="fas fa-times"></i></button>'
+                        + '<button class="btn btn-success btn-icon play-btn" data-title="' + safeTitle + '" data-url="' + safeUrl + '" title="Play" aria-label="Play"><i class="fas fa-play"></i></button>'
+                        + '<button class="btn btn-primary btn-icon add-btn" data-title="' + safeTitle + '" data-url="' + safeUrl + '" title="Add to playlist" aria-label="Add to playlist"><i class="fas fa-plus"></i></button>'
+                        + '<button class="btn btn-warning btn-icon remove-btn" data-title="' + safeTitle + '" data-url="' + safeUrl + '" title="Remove from playlist" aria-label="Remove from playlist"><i class="fas fa-times"></i></button>'
                         + '</div>';
                 }
             }
-        ]
+        ],
+        // Rows are re-rendered on every server-side draw, so the play/stop state
+        // has to be re-applied to the new buttons.
+        drawCallback: function () {
+            renderPlayerState();
+        }
     });
 
     // Error events don't bubble, so listen on the capture phase: a country with
@@ -139,10 +146,32 @@ $(document).ready(function () {
 
     // Delegated event handlers for dynamically rendered rows
     $('#stations-by-countries tbody').on('click', '.play-btn', function () {
-        playURL($(this).data('url'));
+        var url = $(this).data('url');
+        if (currentStation && currentStation.url === url) {
+            stopPlayback();
+        } else {
+            playURL(url, $(this).data('title'));
+        }
     });
-    $('#stations-by-countries tbody').on('click', '.stop-btn', function () {
+    $('#now-playing-stop').click(function () {
         stopPlayback();
+    });
+
+    audioPlayer.addEventListener('playing', function () {
+        if (currentStation) {
+            setPlayerState('playing');
+        }
+    });
+    audioPlayer.addEventListener('waiting', function () {
+        if (currentStation) {
+            setPlayerState('loading');
+        }
+    });
+    audioPlayer.addEventListener('error', function () {
+        // Clearing the source to stop buffering also fires error; ignore that.
+        if (currentStation) {
+            reportPlaybackFailure();
+        }
     });
     $('#stations-by-countries tbody').on('click', '.add-btn', function () {
         addToNewList($(this).data('title'), $(this).data('url'));
@@ -205,14 +234,80 @@ function escapeHtml(str) {
 
 // --- Audio ---
 
-function playURL(url) {
+function playURL(url, title) {
+    currentStation = { url: url, title: title || url };
+    setPlayerState('loading');
     audioPlayer.src = url;
-    audioPlayer.play();
+    var started = audioPlayer.play();
+    // Autoplay rejection and unreachable streams both land here.
+    if (started && typeof started.catch === 'function') {
+        started.catch(function () {
+            reportPlaybackFailure();
+        });
+    }
 }
 
 function stopPlayback() {
+    currentStation = null;
     audioPlayer.pause();
-    audioPlayer.currentTime = 0;
+    // pause() alone keeps the stream downloading; drop the source to stop it.
+    audioPlayer.removeAttribute('src');
+    audioPlayer.load();
+    setPlayerState('stopped');
+}
+
+function reportPlaybackFailure() {
+    // A failed stream rejects the play() promise *and* fires an error event.
+    // Only the first one through should report, or the toast is overwritten by
+    // a second, less specific one.
+    if (!currentStation) {
+        return;
+    }
+    var name = currentStation.title;
+    currentStation = null;
+    audioPlayer.removeAttribute('src');
+    setPlayerState('stopped');
+    Swal.fire({
+        toast: true,
+        position: 'top-end',
+        icon: 'error',
+        title: name + " can't be played right now.",
+        showConfirmButton: false,
+        timer: 2500
+    });
+}
+
+function setPlayerState(state) {
+    playerState = currentStation ? state : 'stopped';
+    renderPlayerState();
+}
+
+// Reflects the player in two places: the row button acting as a play/stop
+// toggle, and a banner that stays visible while browsing other pages.
+function renderPlayerState() {
+    var banner = $('#now-playing');
+    if (!currentStation) {
+        banner.addClass('hidden');
+    } else {
+        banner.removeClass('hidden');
+        $('#now-playing-name').text(currentStation.title);
+        $('#now-playing-status').text(playerState === 'playing' ? 'Now playing' : 'Loading');
+    }
+
+    $('#stations-by-countries tbody .play-btn').each(function () {
+        var button = $(this);
+        var isCurrent = !!currentStation && button.data('url') === currentStation.url;
+        var icon = 'play';
+        if (isCurrent) {
+            icon = playerState === 'loading' ? 'spinner fa-spin' : 'stop';
+        }
+        button
+            .toggleClass('btn-success', !isCurrent)
+            .toggleClass('btn-danger', isCurrent)
+            .attr('title', isCurrent ? 'Stop' : 'Play')
+            .attr('aria-label', isCurrent ? 'Stop' : 'Play')
+            .html('<i class="fas fa-' + icon + '"></i>');
+    });
 }
 
 // --- Playlist management ---
