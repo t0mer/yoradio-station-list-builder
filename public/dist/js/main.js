@@ -274,7 +274,9 @@ function reportPlaybackFailure() {
         toast: true,
         position: 'top-end',
         icon: 'error',
-        title: name + " can't be played right now.",
+        // titleText, not title: SweetAlert2 renders `title` as HTML, and station
+        // names come from the imported directory data rather than from us.
+        titleText: name + " can't be played right now.",
         showConfirmButton: false,
         timer: 2500
     });
