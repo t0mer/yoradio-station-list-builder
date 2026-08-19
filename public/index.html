@@ -49,6 +49,15 @@
       --text-primary: #1f2937;
       --text-secondary: #6b7280;
       --border-color: #e5e7eb;
+      /* Surface tokens — every panel/control colour resolves through these so
+         the dark theme only has to redefine the variables, not the rules. */
+      --surface: #ffffff;
+      --surface-header: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+      --surface-hover: #f9fafb;
+      --input-bg: #ffffff;
+      --overlay-bg: rgba(255, 255, 255, 0.95);
+      --link-color: #4f46e5;
+      color-scheme: light;
       --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
       --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
       --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
@@ -97,7 +106,7 @@
     }
 
     .stat-card {
-      background: white;
+      background: var(--surface);
       border-radius: var(--radius);
       padding: 2rem;
       box-shadow: var(--shadow-lg);
@@ -124,7 +133,7 @@
     }
 
     .card {
-      background: white;
+      background: var(--surface);
       border-radius: var(--radius);
       box-shadow: var(--shadow-lg);
       margin-bottom: 2rem;
@@ -132,7 +141,7 @@
     }
 
     .card-header {
-      background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+      background: var(--surface-header);
       padding: 1.5rem 2rem;
       border-bottom: 1px solid var(--border-color);
     }
@@ -170,7 +179,8 @@
       border-radius: var(--radius-sm);
       font-size: 1rem;
       transition: all 0.2s ease;
-      background: white;
+      background: var(--input-bg);
+      color: var(--text-primary);
     }
 
     .form-control:focus {
@@ -279,7 +289,7 @@
     }
 
     .table-container {
-      background: white;
+      background: var(--surface);
       border-radius: var(--radius);
       overflow: hidden;
       box-shadow: var(--shadow-sm);
@@ -308,7 +318,11 @@
     }
 
     .table tbody tr:hover {
-      background: #f9fafb;
+      background: var(--surface-hover);
+    }
+
+    .table a {
+      color: var(--link-color);
     }
 
     .flag {
@@ -346,7 +360,7 @@
       left: 0;
       width: 100%;
       height: 100%;
-      background: rgba(255, 255, 255, 0.95);
+      background: var(--overlay-bg);
       display: flex;
       align-items: center;
       justify-content: center;
@@ -388,6 +402,13 @@
         --text-secondary: #d1d5db;
         --secondary-color: #374151;
         --border-color: #4b5563;
+        --surface: #1f2937;
+        --surface-header: linear-gradient(135deg, #273449 0%, #1f2937 100%);
+        --surface-hover: #273142;
+        --input-bg: #111827;
+        --overlay-bg: rgba(17, 24, 39, 0.95);
+        --link-color: #a5b4fc;
+        color-scheme: dark;
       }
     }
 
@@ -441,6 +462,7 @@
     /* DataTables custom styling */
     .dataTables_wrapper {
       padding: 0;
+      color: var(--text-primary);
     }
 
     .dataTables_length,
@@ -450,11 +472,14 @@
       margin: 1rem 0;
     }
 
-    .dataTables_filter input {
+    .dataTables_filter input,
+    .dataTables_length select {
       border: 2px solid var(--border-color);
       border-radius: var(--radius-sm);
       padding: 0.5rem;
       margin-left: 0.5rem;
+      background: var(--input-bg);
+      color: var(--text-primary);
     }
 
     .paginate_button {
