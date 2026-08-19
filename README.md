@@ -14,7 +14,8 @@ the JSON API from a [D1](https://developers.cloudflare.com/d1/) database.
 | `src/` | The Worker — `index.ts` routes, `db.ts` queries, `params.ts` parsing |
 | `public/` | Static UI served by the assets binding |
 | `test/` | Vitest suite, run inside workerd against a real local D1 |
-| `scripts/build-seed.sh` | Generates D1 import SQL from the SQLite database |
+| `migrations/` | D1 migrations — schema and station data. **Committed** |
+| `scripts/build-migrations.py` | Regenerates `migrations/` from the SQLite database |
 | `legacy/` | The original FastAPI app. **Unmaintained**, kept for reference |
 | `legacy/db/stations.db` | Source of truth for the station data |
 
@@ -23,19 +24,12 @@ the JSON API from a [D1](https://developers.cloudflare.com/d1/) database.
 ```sh
 npm install
 
-# 1. Create the database
+# Create the database, then copy the printed database_id into wrangler.jsonc
 npx wrangler d1 create yoradio-stations
-#    Copy the printed database_id into wrangler.jsonc
-
-# 2. Generate the import SQL from legacy/db/stations.db
-npm run seed:build
-
-# 3. Load the data (~38k rows). Required — the app has no data without it.
-npx wrangler d1 execute yoradio-stations --remote --file=d1/seed.sql
 ```
 
-Step 3 is easy to forget and is not part of the deploy workflow. A freshly
-deployed Worker with an unseeded database returns empty lists, not an error.
+That is the only manual step. The schema and all ~38,000 stations ship as D1
+migrations in `migrations/`, applied automatically on deploy.
 
 ## Develop
 
@@ -45,23 +39,50 @@ npm test           # vitest inside workerd
 npm run typecheck
 ```
 
-For local data, seed the local database once:
+For local data, apply the migrations to the local database once:
 
 ```sh
-npx wrangler d1 execute yoradio-stations --local --file=d1/seed.sql
+npm run migrations:apply:local
 ```
 
 ## Deploy
 
-Manually, via the **Deploy to Cloudflare** GitHub Action (`workflow_dispatch`),
-which typechecks and tests before deploying. It needs two repository secrets:
+Deploying applies any unapplied migrations first, then uploads the Worker:
+
+```sh
+npm run deploy      # wrangler d1 migrations apply DB --remote && wrangler deploy
+```
+
+Migrations record themselves in a `d1_migrations` table, so this is a no-op on
+every deploy after the first — the data loads once and repeat deploys skip it.
+
+### Via the Cloudflare dashboard (Workers Builds)
+
+Connect the repository under **Workers → your Worker → Settings → Build**, then:
+
+| Field | Value |
+|---|---|
+| Build command | `npm ci` |
+| Deploy command | `npm run deploy` |
+| API token | A token with **D1 edit** permission (see below) |
+
+**The API token matters.** The token Cloudflare generates for Workers Builds by
+default covers Workers Scripts, KV and R2 — but *not* D1, so `migrations apply`
+will fail with the default. Create a token with D1 edit permission and select it
+in the API token field.
+
+The build image is Ubuntu with Node preinstalled but **no `sqlite3` binary**,
+which is why `migrations/` is committed rather than generated at build time.
+
+### Via GitHub Actions
+
+The **Deploy to Cloudflare** workflow (`workflow_dispatch`) typechecks and tests
+before deploying. It needs two repository secrets:
 
 | Secret | Purpose |
 |---|---|
-| `CLOUDFLARE_API_TOKEN` | Token with Workers Scripts + D1 edit permissions |
+| `CLOUDFLARE_API_TOKEN` | Token with Workers Scripts **and D1** edit permissions |
 | `CLOUDFLARE_ACCOUNT_ID` | Your Cloudflare account id |
-
-Or locally: `npm run deploy`.
 
 ## API
 
@@ -94,10 +115,22 @@ Tab-separated, one station per line: `title\turl\tOvol\n`, exported as
 parses the same format. The playlist lives entirely in the browser — nothing is
 stored server-side.
 
+## Updating the station list
+
+Edit `legacy/db/stations.db`, then regenerate and commit:
+
+```sh
+npm run migrations:build
+```
+
+This rewrites `migrations/0002_seed_stations.sql` in place. Because that file
+is already recorded in `d1_migrations`, an existing database will **not** pick
+up the changes — add a new numbered migration for incremental updates instead.
+
 ## Cost notes
 
-The two indexes created by `scripts/build-seed.sh` are load-bearing, not
-tuning. D1 bills rows read, and without an index on `Stations(country_id)` a
+The two indexes created in `migrations/0001_create_schema.sql` are
+load-bearing, not tuning. D1 bills rows read, and without an index on `Stations(country_id)` a
 country-filtered page view scans all 38,116 rows — roughly 131 page views would
 exhaust the daily free-tier quota. With it, a page view reads about a page's
 worth of rows.
