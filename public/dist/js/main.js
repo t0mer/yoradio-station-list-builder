@@ -267,10 +267,29 @@ function updateNewListTable() {
                 removeFromNewList(item.title, item.url);
             });
 
+        // Ovol is the per-station volume offset YoRadio reads from the third
+        // column. Editing mutates the item in place, so no table redraw (and no
+        // lost focus) while the user is typing.
+        var $ovol = $('<input>')
+            .addClass('ovol-input')
+            .attr({
+                type: 'number',
+                min: 0,
+                step: 1,
+                title: 'Station volume offset',
+                'aria-label': 'Volume offset for ' + item.title
+            })
+            .val(item.Ovol)
+            .on('change', function () {
+                item.Ovol = normaliseOvol($(this).val());
+                $(this).val(item.Ovol);
+                savePlaylist();
+            });
+
         table.row.add($('<tr>').append(
             $('<td>').text(item.title),
             $('<td>').addClass('url-cell').attr('title', item.url).text(item.url),
-            $('<td>').text(item.Ovol),
+            $('<td>').append($ovol),
             $('<td>').append($('<div class="action-buttons">').append($up, $down, $remove))
         ));
     });

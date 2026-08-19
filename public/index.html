@@ -375,6 +375,24 @@
       overflow-x: auto;
     }
 
+    .ovol-input {
+      width: 100%;
+      max-width: 5rem;
+      padding: 0.375rem 0.5rem;
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-sm);
+      background: var(--input-bg);
+      color: var(--text-primary);
+      font-family: inherit;
+      font-size: 0.875rem;
+    }
+
+    .ovol-input:focus {
+      outline: none;
+      border-color: var(--primary-color);
+      box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+    }
+
     /* Playlist table: a fixed layout keeps the columns at their declared
        widths, so a single very long stream URL can no longer expand its own
        column and squeeze the station name down to a few characters. */
