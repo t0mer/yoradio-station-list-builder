@@ -3,10 +3,6 @@ name: Deploy to Cloudflare
 # Manual only: deploys are intentional, never a side effect of a push.
 on:
   workflow_dispatch:
-    inputs:
-      environment:
-        description: "Wrangler environment (blank = top-level config)"
-        required: false
 
 permissions:
   contents: read
@@ -34,9 +30,7 @@ jobs:
       # Pin to a commit SHA for release-critical use.
       - name: Deploy Worker
         uses: cloudflare/wrangler-action@v3
-        env:
-          ENVIRONMENT: ${{ github.event.inputs.environment }}
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: deploy ${{ github.event.inputs.environment && format('--env {0}', github.event.inputs.environment) || '' }}
+          command: deploy
