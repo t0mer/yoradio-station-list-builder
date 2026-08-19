@@ -123,8 +123,7 @@ $(document).ready(function () {
                     var safeTitle = escapeHtml(row.title);
                     return '<div class="action-buttons">'
                         + '<button class="btn btn-success btn-icon play-btn" data-title="' + safeTitle + '" data-url="' + safeUrl + '" title="Play" aria-label="Play"><i class="fas fa-play"></i></button>'
-                        + '<button class="btn btn-primary btn-icon add-btn" data-title="' + safeTitle + '" data-url="' + safeUrl + '" title="Add to playlist" aria-label="Add to playlist"><i class="fas fa-plus"></i></button>'
-                        + '<button class="btn btn-warning btn-icon remove-btn" data-title="' + safeTitle + '" data-url="' + safeUrl + '" title="Remove from playlist" aria-label="Remove from playlist"><i class="fas fa-times"></i></button>'
+                        + '<button class="btn btn-primary btn-icon playlist-btn" data-title="' + safeTitle + '" data-url="' + safeUrl + '"></button>'
                         + '</div>';
                 }
             }
@@ -133,6 +132,7 @@ $(document).ready(function () {
         // has to be re-applied to the new buttons.
         drawCallback: function () {
             renderPlayerState();
+            renderPlaylistState();
         }
     });
 
@@ -173,11 +173,14 @@ $(document).ready(function () {
             reportPlaybackFailure();
         }
     });
-    $('#stations-by-countries tbody').on('click', '.add-btn', function () {
-        addToNewList($(this).data('title'), $(this).data('url'));
-    });
-    $('#stations-by-countries tbody').on('click', '.remove-btn', function () {
-        removeFromNewList($(this).data('title'), $(this).data('url'));
+    $('#stations-by-countries tbody').on('click', '.playlist-btn', function () {
+        var title = $(this).data('title');
+        var url = $(this).data('url');
+        if (isInPlaylist(title, url)) {
+            removeFromNewList(title, url);
+        } else {
+            addToNewList(title, url);
+        }
     });
 
     // Country filter — reload DataTable with new country_id
@@ -312,11 +315,30 @@ function renderPlayerState() {
 
 // --- Playlist management ---
 
-function addToNewList(title, url) {
-    var exists = newList.some(function (item) {
+function isInPlaylist(title, url) {
+    return newList.some(function (item) {
         return item.title === title && item.url === url;
     });
-    if (exists) {
+}
+
+// The browse table doubles as the playlist's membership view: each row shows
+// whether that station is already in the list and toggles it.
+function renderPlaylistState() {
+    $('#stations-by-countries tbody .playlist-btn').each(function () {
+        var button = $(this);
+        var inList = isInPlaylist(button.data('title'), button.data('url'));
+        button
+            .toggleClass('btn-primary', !inList)
+            .toggleClass('btn-warning', inList)
+            .attr('title', inList ? 'Remove from playlist' : 'Add to playlist')
+            .attr('aria-label', inList ? 'Remove from playlist' : 'Add to playlist')
+            .attr('aria-pressed', inList ? 'true' : 'false')
+            .html('<i class="fas fa-' + (inList ? 'check' : 'plus') + '"></i>');
+    });
+}
+
+function addToNewList(title, url) {
+    if (isInPlaylist(title, url)) {
         Swal.fire({ toast: true, position: 'top-end', icon: 'error', title: 'Station already exists in the list!', showConfirmButton: false, timer: 1500 });
         return;
     }
@@ -355,6 +377,9 @@ function clearNewList() {
 }
 
 function updateNewListTable() {
+    // Keep the browse table's membership badges in step with the playlist.
+    renderPlaylistState();
+
     var table = $('#new-list').DataTable();
     table.clear();
     newList.forEach(function (item, index) {
